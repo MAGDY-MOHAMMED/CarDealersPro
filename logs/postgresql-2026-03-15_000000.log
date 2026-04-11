@@ -1,0 +1,291 @@
+2026-03-15 03:22:37 EET LOG:  checkpoint starting: time
+2026-03-15 03:24:14 EET LOG:  checkpoint complete: wrote 972 buffers (5.9%); 0 WAL file(s) added, 0 removed, 0 recycled; write=97.541 s, sync=0.022 s, total=97.565 s; sync files=301, longest=0.001 s, average=0.001 s; distance=4531 kB, estimate=4531 kB; lsn=0/1A1DD70, redo lsn=0/1A1DCE0
+2026-03-15 04:02:37 EET LOG:  checkpoint starting: time
+2026-03-15 04:02:41 EET LOG:  checkpoint complete: wrote 39 buffers (0.2%); 0 WAL file(s) added, 0 removed, 0 recycled; write=3.817 s, sync=0.004 s, total=3.823 s; sync files=35, longest=0.001 s, average=0.001 s; distance=148 kB, estimate=4093 kB; lsn=0/1A42F08, redo lsn=0/1A42EB0
+2026-03-15 04:04:42 EET ERROR:  null value in column "id" of relation "products" violates not-null constraint
+2026-03-15 04:04:42 EET DETAIL:  Failing row contains (TV, 200, null).
+2026-03-15 04:04:42 EET STATEMENT:  INSERT INTO public.products (
+	name, price, id) VALUES (
+	$1::character varying, $2::numeric, $3::uuid)
+	 returning id;
+2026-03-15 04:05:04 EET ERROR:  column "id" is in a primary key
+2026-03-15 04:05:04 EET STATEMENT:  ALTER TABLE IF EXISTS public.products
+	    ALTER COLUMN id DROP NOT NULL;
+2026-03-15 04:05:23 EET ERROR:  null value in column "id" of relation "products" violates not-null constraint
+2026-03-15 04:05:23 EET DETAIL:  Failing row contains (TV, 200, null).
+2026-03-15 04:05:23 EET STATEMENT:  INSERT INTO public.products (
+	name, price, id) VALUES (
+	$1::character varying, $2::numeric, $3::uuid)
+	 returning id;
+2026-03-15 04:05:33 EET ERROR:  null value in column "id" of relation "products" violates not-null constraint
+2026-03-15 04:05:33 EET DETAIL:  Failing row contains (TV, 200, null).
+2026-03-15 04:05:33 EET STATEMENT:  INSERT INTO public.products (
+	name, price, id) VALUES (
+	$1::character varying, $2::numeric, $3::uuid)
+	 returning id;
+2026-03-15 04:07:37 EET LOG:  checkpoint starting: time
+2026-03-15 04:07:37 EET LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.100 s, sync=0.001 s, total=0.103 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=3683 kB; lsn=0/1A430A0, redo lsn=0/1A43048
+2026-03-15 04:09:28 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:09:28 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:09:53 EET ERROR:  null value in column "id" of relation "products" violates not-null constraint
+2026-03-15 04:09:53 EET DETAIL:  Failing row contains (TV, 200, null).
+2026-03-15 04:09:53 EET STATEMENT:  INSERT INTO public.products (
+	name, price, id) VALUES (
+	$1::character varying, $2::numeric, $3::uuid)
+	 returning id;
+2026-03-15 04:10:05 EET ERROR:  null value in column "id" of relation "products" violates not-null constraint
+2026-03-15 04:10:05 EET DETAIL:  Failing row contains (TV, 200, null).
+2026-03-15 04:10:05 EET STATEMENT:  INSERT INTO public.products (
+	name, price, id) VALUES (
+	$1::character varying, $2::numeric, $3::uuid)
+	 returning id;
+2026-03-15 04:10:10 EET ERROR:  null value in column "id" of relation "products" violates not-null constraint
+2026-03-15 04:10:10 EET DETAIL:  Failing row contains (TV, 200, null).
+2026-03-15 04:10:10 EET STATEMENT:  INSERT INTO public.products (
+	name, price, id) VALUES (
+	$1::character varying, $2::numeric, $3::uuid)
+	 returning id;
+2026-03-15 04:10:29 EET ERROR:  null value in column "id" of relation "products" violates not-null constraint
+2026-03-15 04:10:29 EET DETAIL:  Failing row contains (TV, 200, null).
+2026-03-15 04:10:29 EET STATEMENT:  INSERT INTO public.products (
+	name, price, id) VALUES (
+	$1::character varying, $2::numeric, $3::uuid)
+	 returning id;
+2026-03-15 04:12:18 EET ERROR:  null value in column "id" of relation "products" violates not-null constraint
+2026-03-15 04:12:18 EET DETAIL:  Failing row contains (TV, 200, null).
+2026-03-15 04:12:18 EET STATEMENT:  INSERT INTO public.products (
+	name, price, id) VALUES (
+	$1::character varying, $2::numeric, $3::uuid)
+	 returning id;
+2026-03-15 04:12:37 EET LOG:  checkpoint starting: time
+2026-03-15 04:12:40 EET LOG:  checkpoint complete: wrote 31 buffers (0.2%); 0 WAL file(s) added, 0 removed, 0 recycled; write=3.013 s, sync=0.006 s, total=3.021 s; sync files=23, longest=0.002 s, average=0.001 s; distance=101 kB, estimate=3325 kB; lsn=0/1A5C700, redo lsn=0/1A5C6A8
+2026-03-15 04:12:58 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:12:58 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:12:59 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:12:59 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:12:59 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:12:59 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:13:00 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:13:00 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:13:00 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:13:00 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:13:00 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:13:00 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:13:50 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:13:50 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:13:50 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:13:50 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:13:51 EET ERROR:  syntax error at or near "EXIST" at character 25
+2026-03-15 04:13:51 EET STATEMENT:  CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+	ALTER TABLE products
+	ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+2026-03-15 04:17:37 EET LOG:  checkpoint starting: time
+2026-03-15 04:17:37 EET LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.301 s, sync=0.001 s, total=0.303 s; sync files=3, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=2993 kB; lsn=0/1A5CBC8, redo lsn=0/1A5CB70
+2026-03-15 04:22:37 EET LOG:  checkpoint starting: time
+2026-03-15 04:22:39 EET LOG:  checkpoint complete: wrote 12 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.105 s, sync=0.024 s, total=1.138 s; sync files=12, longest=0.023 s, average=0.002 s; distance=29 kB, estimate=2696 kB; lsn=0/1A64120, redo lsn=0/1A640C8
+2026-03-15 04:26:04 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-15 04:26:04 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-15 04:26:04 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-15 18:45:26 EET LOG:  checkpoint starting: time
+2026-03-15 18:45:27 EET LOG:  checkpoint complete: wrote 12 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.107 s, sync=0.002 s, total=1.111 s; sync files=12, longest=0.001 s, average=0.001 s; distance=30 kB, estimate=2430 kB; lsn=0/1A6BC18, redo lsn=0/1A6BBC0
+2026-03-15 21:14:58 EET LOG:  checkpoint starting: time
+2026-03-15 21:15:00 EET LOG:  checkpoint complete: wrote 12 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.105 s, sync=0.002 s, total=1.109 s; sync files=12, longest=0.001 s, average=0.001 s; distance=31 kB, estimate=2190 kB; lsn=0/1A73970, redo lsn=0/1A73918
+2026-03-15 21:19:58 EET LOG:  checkpoint starting: time
+2026-03-15 21:19:58 EET LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.201 s, sync=0.001 s, total=0.204 s; sync files=3, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=1971 kB; lsn=0/1A73E08, redo lsn=0/1A73DB0
+2026-03-15 21:30:53 EET ERROR:  syntax error at or near "21" at character 44
+2026-03-15 21:30:53 EET STATEMENT:  select *from products where id= 2026-03-15 21:14:34.341679+02;
+	
+2026-03-15 21:31:15 EET ERROR:  syntax error at or near "=" at character 30
+2026-03-15 21:31:15 EET STATEMENT:  select *from productswhere id=08cb9064-ac91-4b5f-8dea-04f6862b600e  ;
+	
+2026-03-15 21:31:22 EET ERROR:  trailing junk after numeric literal at or near "08cb9064" at character 32
+2026-03-15 21:31:22 EET STATEMENT:  select *from products where id=08cb9064-ac91-4b5f-8dea-04f6862b600e  ;
+	
+2026-03-15 21:32:00 EET ERROR:  trailing junk after numeric literal at or near "08cb9064" at character 34
+2026-03-15 21:32:00 EET STATEMENT:  select *from products where id = 08cb9064-ac91-4b5f-8dea-04f6862b600e ;
+	
+2026-03-15 21:32:05 EET ERROR:  column "08cb9064-ac91-4b5f-8dea-04f6862b600e" does not exist at character 34
+2026-03-15 21:32:05 EET STATEMENT:  select *from products where id = "08cb9064-ac91-4b5f-8dea-04f6862b600e" ;
+	
+2026-03-15 21:34:28 EET ERROR:  syntax error at or near "0" at character 43
+2026-03-15 21:34:28 EET STATEMENT:  select * from products where inventory is 0  ;
+	
+2026-03-15 21:34:58 EET LOG:  checkpoint starting: time
+2026-03-15 21:34:58 EET LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.402 s, sync=0.001 s, total=0.405 s; sync files=4, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=1774 kB; lsn=0/1A742A0, redo lsn=0/1A74248
+2026-03-15 21:45:48 EET ERROR:  syntax error at or near "inventory" at character 29
+2026-03-15 21:45:48 EET STATEMENT:  select * from products were inventory = (50,100)   ;
+	
+2026-03-15 21:46:00 EET ERROR:  syntax error at or near "inventory" at character 29
+2026-03-15 21:46:00 EET STATEMENT:  select * from products were inventory in (50,100)   ;
+	
+2026-03-15 21:50:46 EET ERROR:  operator does not exist: integer ~~ integer at character 40
+2026-03-15 21:50:46 EET HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+2026-03-15 21:50:46 EET STATEMENT:  select * from products where inventory like 50   ;
+	
+2026-03-15 21:51:19 EET ERROR:  column "bmw" does not exist at character 40
+2026-03-15 21:51:19 EET STATEMENT:  select * from products where name LIKE BMW   ;
+	
+2026-03-15 21:51:27 EET ERROR:  syntax error at or near "BMW" at character 1
+2026-03-15 21:51:27 EET STATEMENT:  BMW
+2026-03-15 21:54:50 EET ERROR:  syntax error at or near "dsc" at character 39
+2026-03-15 21:54:50 EET STATEMENT:  select * from products order by price dsc;
+	
+2026-03-15 21:55:49 EET ERROR:  syntax error at or near "price" at character 48
+2026-03-15 21:55:49 EET STATEMENT:  select * from products order by inventory desc price asc; 
+	
+2026-03-15 22:01:15 EET ERROR:  syntax error at or near "limit" at character 37
+2026-03-15 22:01:15 EET STATEMENT:  select * from products order by id, limit 5 ; 
+	
+2026-03-15 22:04:58 EET LOG:  checkpoint starting: time
+2026-03-15 22:04:58 EET LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.201 s, sync=0.001 s, total=0.204 s; sync files=3, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=1597 kB; lsn=0/1A74800, redo lsn=0/1A747A8
+2026-03-15 22:09:58 EET LOG:  checkpoint starting: time
+2026-03-15 22:09:59 EET LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.201 s, sync=0.001 s, total=0.204 s; sync files=3, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=1437 kB; lsn=0/1A74F88, redo lsn=0/1A74F30
+2026-03-15 22:19:01 EET ERROR:  syntax error at or near "=" at character 22
+2026-03-15 22:19:01 EET STATEMENT:  update products name = 'Kia' where id ='486fa3bc-29f8-4eac-9858-a72c9a46a7eb';
+2026-03-15 22:19:29 EET ERROR:  syntax error at or near "=" at character 22
+2026-03-15 22:19:29 EET STATEMENT:  update products name = 'Kia' where id = '486fa3bc-29f8-4eac-9858-a72c9a46a7eb';
+2026-03-15 22:19:41 EET ERROR:  syntax error at or near "=" at character 22
+2026-03-15 22:19:41 EET STATEMENT:  update products name = 'Kia' where id = '486fa3bc-29f8-4eac-9858-a72c9a46a7eb ';
+2026-03-15 22:19:58 EET LOG:  checkpoint starting: time
+2026-03-15 22:19:58 EET LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.101 s, sync=0.001 s, total=0.103 s; sync files=2, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=1293 kB; lsn=0/1A75588, redo lsn=0/1A75530
+2026-03-15 22:20:13 EET ERROR:  invalid input syntax for type uuid: "486fa3bc-29f8-4eac-9858-a72c9a46a7eb " at character 45
+2026-03-15 22:20:13 EET STATEMENT:  update products set name = 'Kia' where id = '486fa3bc-29f8-4eac-9858-a72c9a46a7eb ';
+2026-03-15 22:24:42 EET ERROR:  column "is_sale" of relation "products" does not exist at character 21
+2026-03-15 22:24:42 EET STATEMENT:  update products set is_sale = true where inventory >=50 returning *;
+2026-03-15 22:24:47 EET ERROR:  syntax error at or near "?" at character 29
+2026-03-15 22:24:47 EET STATEMENT:  update products set is_sale ? = true where inventory >=50 returning *;
+2026-03-15 22:24:58 EET LOG:  checkpoint starting: time
+2026-03-15 22:24:58 EET LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.101 s, sync=0.001 s, total=0.103 s; sync files=2, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=1164 kB; lsn=0/1A75C00, redo lsn=0/1A75BA8
+2026-03-15 22:25:11 EET ERROR:  syntax error at or near "?" at character 28
+2026-03-15 22:25:11 EET STATEMENT:  update products set is_sale? = true where inventory >=50 returning *;
+2026-03-15 22:25:14 EET ERROR:  syntax error at or near "?" at character 29
+2026-03-15 22:25:14 EET STATEMENT:  update products set is_sale ? = true where inventory >=50 returning *;
+2026-03-15 22:25:16 EET ERROR:  column "is_sale" of relation "products" does not exist at character 21
+2026-03-15 22:25:16 EET STATEMENT:  update products set is_sale = true where inventory >=50 returning *;
+2026-03-15 22:29:58 EET LOG:  checkpoint starting: time
+2026-03-15 22:29:58 EET LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.403 s, sync=0.001 s, total=0.406 s; sync files=5, longest=0.001 s, average=0.001 s; distance=12 kB, estimate=1049 kB; lsn=0/1A78C70, redo lsn=0/1A78C18
+2026-03-15 22:34:58 EET LOG:  checkpoint starting: time
+2026-03-15 22:35:01 EET LOG:  checkpoint complete: wrote 32 buffers (0.2%); 0 WAL file(s) added, 0 removed, 0 recycled; write=3.113 s, sync=0.003 s, total=3.118 s; sync files=32, longest=0.001 s, average=0.001 s; distance=142 kB, estimate=958 kB; lsn=0/1A9C4C8, redo lsn=0/1A9C470
+2026-03-15 22:36:44 EET ERROR:  relation "public.posts" does not exist at character 13
+2026-03-15 22:36:44 EET STATEMENT:  INSERT INTO public.posts (
+	id, brand, model, year, price) VALUES (
+	$1::uuid, $2::character varying, $3::character varying, $4::numeric, $5::numeric)
+	;
+2026-03-15 22:36:56 EET ERROR:  relation "public.posts" does not exist at character 13
+2026-03-15 22:36:56 EET STATEMENT:  INSERT INTO public.posts (
+	id, brand, model, year, price, published) VALUES (
+	$1::uuid, $2::character varying, $3::character varying, $4::numeric, $5::numeric, $6::boolean)
+	;
+2026-03-15 22:37:38 EET ERROR:  column "id" is in a primary key
+2026-03-15 22:37:38 EET STATEMENT:  ALTER TABLE IF EXISTS public."Cars"
+	    ALTER COLUMN id DROP NOT NULL;
+2026-03-15 22:37:50 EET ERROR:  relation "public.posts" does not exist at character 13
+2026-03-15 22:37:50 EET STATEMENT:  INSERT INTO public.posts (
+	id, brand, model, year, price, published) VALUES (
+	$1::uuid, $2::character varying, $3::character varying, $4::numeric, $5::numeric, $6::boolean)
+	;
+2026-03-15 22:38:30 EET ERROR:  relation "public.posts" does not exist at character 13
+2026-03-15 22:38:30 EET STATEMENT:  INSERT INTO public.posts (
+	id, brand, model, year, price, published) VALUES (
+	$1::uuid, $2::character varying, $3::character varying, $4::numeric, $5::numeric, $6::boolean)
+	;
+2026-03-15 22:39:33 EET ERROR:  null value in column "id" of relation "cars" violates not-null constraint
+2026-03-15 22:39:33 EET DETAIL:  Failing row contains (null, SKODA, Octavia, 2020, 1250000, null, 2026-03-15 22:39:33.817226+02).
+2026-03-15 22:39:33 EET STATEMENT:  INSERT INTO public.cars (
+	id, brand, model, year, price, published) VALUES (
+	$1::uuid, $2::character varying, $3::character varying, $4::numeric, $5::numeric, $6::boolean)
+	 returning id;
+2026-03-15 22:39:58 EET LOG:  checkpoint starting: time
+2026-03-15 22:40:00 EET LOG:  checkpoint complete: wrote 21 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=2.009 s, sync=0.002 s, total=2.013 s; sync files=13, longest=0.001 s, average=0.001 s; distance=105 kB, estimate=873 kB; lsn=0/1AB69C0, redo lsn=0/1AB6968
+2026-03-15 22:40:30 EET ERROR:  null value in column "id" of relation "cars" violates not-null constraint
+2026-03-15 22:40:30 EET DETAIL:  Failing row contains (null, SKODA, Octavia, 2020, 1250000, null, 2026-03-15 22:40:30.482088+02).
+2026-03-15 22:40:30 EET STATEMENT:  INSERT INTO public.cars (
+	id, brand, model, year, price, published) VALUES (
+	$1::uuid, $2::character varying, $3::character varying, $4::numeric, $5::numeric, $6::boolean)
+	 returning id;
+2026-03-15 22:40:36 EET ERROR:  null value in column "id" of relation "cars" violates not-null constraint
+2026-03-15 22:40:36 EET DETAIL:  Failing row contains (null, SKODA, Octavia, 2020, 1250000, null, 2026-03-15 22:40:36.169245+02).
+2026-03-15 22:40:36 EET STATEMENT:  INSERT INTO public.cars (
+	id, brand, model, year, price, published) VALUES (
+	$1::uuid, $2::character varying, $3::character varying, $4::numeric, $5::numeric, $6::boolean)
+	 returning id;
+2026-03-15 22:41:00 EET ERROR:  relation "cars" already exists
+2026-03-15 22:41:00 EET STATEMENT:  CREATE TABLE public.cars (
+	    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	    brand VARCHAR(100) NOT NULL,
+	    model VARCHAR(100) NOT NULL,
+	    year NUMERIC(4,0),
+	    price NUMERIC(12,2) DEFAULT 0,
+	    published BOOLEAN DEFAULT TRUE,
+	    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+	);
+	
+2026-03-15 22:44:58 EET LOG:  checkpoint starting: time
+2026-03-15 22:44:59 EET LOG:  checkpoint complete: wrote 11 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.006 s, sync=0.002 s, total=1.009 s; sync files=10, longest=0.001 s, average=0.001 s; distance=27 kB, estimate=788 kB; lsn=0/1ABD668, redo lsn=0/1ABD610
+2026-03-15 23:28:56 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-15 23:28:56 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-15 23:28:56 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-15 23:28:56 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-16 05:11:01 EET ERROR:  relation "posts" does not exist at character 15
+2026-03-16 05:11:01 EET STATEMENT:  SELECT * FROM posts
+2026-03-16 05:29:06 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-16 05:29:06 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-16 05:29:06 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-16 05:29:06 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-18 00:17:04 EET LOG:  checkpoint starting: time
+2026-03-18 00:17:04 EET LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.201 s, sync=0.001 s, total=0.204 s; sync files=3, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=709 kB; lsn=0/1ABD960, redo lsn=0/1ABD908
+2026-03-18 00:56:40 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-18 00:56:40 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-18 00:56:40 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-18 00:56:40 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-19 00:29:28 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-19 00:29:28 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-19 00:29:28 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-19 00:29:28 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-20 03:14:28 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-20 03:14:28 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-20 03:14:28 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-20 17:14:28 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-20 17:27:37 EET LOG:  checkpoint starting: time
+2026-03-20 17:27:37 EET LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.201 s, sync=0.001 s, total=0.204 s; sync files=3, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=639 kB; lsn=0/1ABDD50, redo lsn=0/1ABDCF8

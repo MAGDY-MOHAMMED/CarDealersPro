@@ -1,59 +1,65 @@
-import psycopg
-from psycopg.rows import dict_row
-from psycopg_pool import ConnectionPool 
-import time
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import event
+from typing import AsyncGenerator
+from core.logging_config import logger 
+from core.request_id import get_request_id
+from core.logging_config import logger 
+from core.db_cursor import RequestIDCursor
 import logging
-from app.logging_config import logger
-from typing import Generator
-
-logger = logging.getLogger(__name__) # why ? because it's easier to filter logs by logger name
 
 
 
-CONN_STR = "host=localhost dbname=fastapi user=postgres password=Magdy123456"
-MIN_POOL_SIZE = 2
-MAX_POOL_SIZE = 20
-MAX_RETRIES = 5
-RETRY_BACKOFF_BASE = 1
+SQL_ALCHEMY_URL = "postgresql+asyncpg://postgres:Magdy123456@localhost:5432/fastapi" # why asyncpg ? because it's faster than psycopg
+engine = create_async_engine(SQL_ALCHEMY_URL, pool_size=10, max_overflow=20) # pool_size is the number of connections to keep in the pool, max_overflow is the number of connections to create beyond the pool_size
 
-def create_pool_with_retry() -> ConnectionPool:
-    attempt = 0 # attempts here means the number of times we tried to create the pool
-    max_attempts = 5
-    while attempt < max_attempts:
+@event.listens_for(engine.sync_engine, "before_cursor_execute")
+def add_request_id_to_logs(conn, cursor, statement, parameters, context, executemany):
+    request_id= get_request_id()
+    if request_id :
+        context.statement = f"/* Request_id : {request_id} */ {statement}" # adding request id to the statement
+    logger.debug("Executing SQL statement",extra={
+        "statement": statement,
+        "parameters": parameters,
+        "request_id": request_id,
+        "query" : context.statement if request_id else statement
+    })
+    
+
+
+
+
+SessionLocal = async_sessionmaker(
+    autocommit=False, 
+    autoflush=False, 
+    bind=engine, 
+    class_=AsyncSession, 
+    expire_on_commit=False
+    ) 
+
+class Base(DeclarativeBase):
+    """
+    Base class for all database models
+    """
+    
+    pass
+
+
+#"host=localhost dbname=fastapi user=postgres password=Magdy123456"
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with SessionLocal() as session:
         try:
-
-            pool = ConnectionPool(
-                conninfo=CONN_STR,
-                min_size=MIN_POOL_SIZE,
-                max_size=MAX_POOL_SIZE,
-                kwargs={"row_factory": dict_row},
-                retry=MAX_RETRIES, # number of times to retry if the connection fails
-                max_lifetime=300 # maximum of connections in seconds
-            )
-            pool.wait(timeout=10) # wait for the pool to be ready
-            logger.info("Connection pool created successfully", extra={"min_size": MIN_POOL_SIZE, "max_size": MAX_POOL_SIZE}) # why extra ? because it's easier to filter logs by extra fields
-            return pool
-
-        except Exception as e:
-            attempt += 1 # increment the attempt counter
-            wait_time = RETRY_BACKOFF_BASE * (2 ** (attempt - 1)) # exponential backoff
-            logging.warning(f"pool initializtion failed (attempt{attempt}/{MAX_RETRIES}) : {e}."
-                            f" Retrying in {wait_time} seconds...")
-            if attempt < MAX_RETRIES : # if we haven't reached the maximum number of retries
-                time.sleep(wait_time) # wait for the specified time before retrying
-            else :  # if we have reached the maximum number of retries
-                logger.critical ("Max retries reached while creating connection pool")
-                raise RuntimeError("Failed to create connection pool after multiple attempts")
-_pool = create_pool_with_retry()
-
-def get_db() -> Generator[Connecion,None,None] :
-
-    with _pool.connection() as conn:
-        try:
-            yield conn
+            logger.debug("Database session opened", extra={"request_id": get_request_id()})
+            yield session  
+            await session.commit() # if no exceptions
             # psycopg3 automatically commits if no exception inside the with block
-        except Exception:
-            conn.rollback()
-            logger.exception("Database transaction rolled back due to error")
+        except Exception as e:
+            await session.rollback()
+            logger.exception("Database transaction failed ", extra={"request_id": get_request_id(), "error": str(e)})
             raise
+        finally :
+            await session.close() # close the connection
+
 

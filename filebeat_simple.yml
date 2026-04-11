@@ -1,0 +1,27 @@
+# Simple Filebeat Configuration
+# =============================
+
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/cardealerspro/postgresql_logs.json
+    json.keys_under_root: true
+    json.overwrite_keys: true
+    fields:
+      project_name: "CarDealersPro"
+      log_type: "postgresql"
+    fields_under_root: true
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  index: "cardealerspro-logs-%{+yyyy.MM.dd}"
+  
+setup.template.name: "cardealerspro"
+setup.template.pattern: "cardealerspro-*"
+setup.template.enabled: true
+setup.template.overwrite: true
+
+logging.level: info
+logging.to_files: false
+logging.to_syslog: false

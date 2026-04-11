@@ -1,0 +1,1516 @@
+2026-03-23 22:51:01 EET [7760] postgres@postgres LOG:  statement: SELECT CASE WHEN usesuper
+	       THEN pg_catalog.pg_is_in_recovery()
+	       ELSE FALSE
+	       END as inrecovery,
+	       CASE WHEN usesuper AND pg_catalog.pg_is_in_recovery()
+	       THEN pg_is_wal_replay_paused()
+	       ELSE FALSE
+	       END as isreplaypaused
+	FROM pg_catalog.pg_user WHERE usename=current_user
+2026-03-23 22:51:01 EET [7760] postgres@postgres LOG:  statement: SELECT CASE
+	    WHEN (SELECT count(extname) FROM pg_catalog.pg_extension WHERE extname='bdr') > 0
+	    THEN 'pgd'
+	    WHEN (SELECT COUNT(*) FROM pg_replication_slots) > 0
+	    THEN 'log'
+	    ELSE NULL
+	END as type;
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: SET DateStyle=ISO; SET client_min_messages=notice; SELECT set_config('bytea_output','hex',false) FROM pg_show_all_settings() WHERE name = 'bytea_output'; SET client_encoding='utf-8';
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: SELECT version()
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: 
+	SELECT
+	    db.oid as did, db.datname, db.datallowconn,
+	    pg_encoding_to_char(db.encoding) AS serverencoding,
+	    has_database_privilege(db.oid, 'CREATE') as cancreate,
+	    datistemplate
+	FROM
+	    pg_catalog.pg_database db
+	WHERE db.datname = current_database()
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: 
+	        SELECT
+	             gss_authenticated, encrypted
+	        FROM
+	            pg_catalog.pg_stat_gssapi
+	        WHERE pid = pg_backend_pid()
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: 
+	        SELECT
+	            roles.oid as id, roles.rolname as name,
+	            roles.rolsuper as is_superuser,
+	            CASE WHEN roles.rolsuper THEN true ELSE roles.rolcreaterole END as
+	            can_create_role,
+	            CASE WHEN roles.rolsuper THEN true
+	            ELSE roles.rolcreatedb END as can_create_db,
+	            CASE WHEN 'pg_signal_backend'=ANY(ARRAY(WITH RECURSIVE cte AS (
+	            SELECT pg_roles.oid,pg_roles.rolname FROM pg_roles
+	                WHERE pg_roles.oid = roles.oid
+	            UNION ALL
+	            SELECT m.roleid,pgr.rolname FROM cte cte_1
+	                JOIN pg_auth_members m ON m.member = cte_1.oid
+	                JOIN pg_roles pgr ON pgr.oid = m.roleid)
+	            SELECT rolname  FROM cte)) THEN True
+	            ELSE False END as can_signal_backend
+	        FROM
+	            pg_catalog.pg_roles as roles
+	        WHERE
+	            rolname = current_user
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: SELECT CASE WHEN usesuper
+	       THEN pg_catalog.pg_is_in_recovery()
+	       ELSE FALSE
+	       END as inrecovery,
+	       CASE WHEN usesuper AND pg_catalog.pg_is_in_recovery()
+	       THEN pg_is_wal_replay_paused()
+	       ELSE FALSE
+	       END as isreplaypaused
+	FROM pg_catalog.pg_user WHERE usename=current_user
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: SELECT CASE
+	    WHEN (SELECT count(extname) FROM pg_catalog.pg_extension WHERE extname='bdr') > 0
+	    THEN 'pgd'
+	    WHEN (SELECT COUNT(*) FROM pg_replication_slots) > 0
+	    THEN 'log'
+	    ELSE NULL
+	END as type;
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: 
+	SELECT
+	    has_table_privilege(
+	      'pgagent.pga_job', 'INSERT, SELECT, UPDATE'
+	    ) has_priviledge
+	WHERE EXISTS(
+	    SELECT has_schema_privilege('pgagent', 'USAGE')
+	    WHERE EXISTS(
+	        SELECT cl.oid FROM pg_catalog.pg_class cl
+	        LEFT JOIN pg_catalog.pg_namespace ns ON ns.oid=relnamespace
+	        WHERE relname='pga_job' AND nspname='pgagent'
+	    )
+	)
+	
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: SELECT CASE
+	    WHEN (SELECT count(extname) FROM pg_catalog.pg_extension WHERE extname='bdr') > 0
+	    THEN 'pgd'
+	    WHEN (SELECT COUNT(*) FROM pg_replication_slots) > 0
+	    THEN 'log'
+	    ELSE NULL
+	END as type;
+2026-03-23 22:51:07 EET [18956] postgres@postgres LOG:  statement: SELECT CASE
+	    WHEN (SELECT count(extname) FROM pg_catalog.pg_extension WHERE extname='bdr') > 0
+	    THEN 'pgd'
+	    WHEN (SELECT COUNT(*) FROM pg_replication_slots) > 0
+	    THEN 'log'
+	    ELSE NULL
+	END as type;
+2026-03-23 22:51:09 EET [18956] postgres@postgres LOG:  statement: SELECT
+	    db.oid as did, db.datname as name, ta.spcname as spcname, db.datallowconn,
+	    db.datistemplate AS is_template,
+	    pg_catalog.has_database_privilege(db.oid, 'CREATE') as cancreate, datdba as owner,
+	    descr.description
+	FROM
+	    pg_catalog.pg_database db
+	    LEFT OUTER JOIN pg_catalog.pg_tablespace ta ON db.dattablespace = ta.oid
+	    LEFT OUTER JOIN pg_catalog.pg_shdescription descr ON (
+	        db.oid=descr.objoid AND descr.classoid='pg_database'::regclass
+	    )
+	WHERE         db.oid > 16383::OID OR db.datname IN ('postgres', 'edb')
+	
+	ORDER BY datname;
+2026-03-23 22:51:12 EET [7760] postgres@postgres LOG:  statement: 
+	SELECT
+	    has_table_privilege(
+	      'pgagent.pga_job', 'INSERT, SELECT, UPDATE'
+	    ) has_priviledge
+	WHERE EXISTS(
+	    SELECT has_schema_privilege('pgagent', 'USAGE')
+	    WHERE EXISTS(
+	        SELECT cl.oid FROM pg_catalog.pg_class cl
+	        LEFT JOIN pg_catalog.pg_namespace ns ON ns.oid=relnamespace
+	        WHERE relname='pga_job' AND nspname='pgagent'
+	    )
+	)
+	
+2026-03-23 22:51:12 EET [7760] postgres@postgres LOG:  statement: SELECT CASE
+	    WHEN (SELECT count(extname) FROM pg_catalog.pg_extension WHERE extname='bdr') > 0
+	    THEN 'pgd'
+	    WHEN (SELECT COUNT(*) FROM pg_replication_slots) > 0
+	    THEN 'log'
+	    ELSE NULL
+	END as type;
+2026-03-23 22:51:12 EET [7760] postgres@postgres LOG:  statement: SELECT CASE
+	    WHEN (SELECT count(extname) FROM pg_catalog.pg_extension WHERE extname='bdr') > 0
+	    THEN 'pgd'
+	    WHEN (SELECT COUNT(*) FROM pg_replication_slots) > 0
+	    THEN 'log'
+	    ELSE NULL
+	END as type;
+2026-03-23 22:51:12 EET [7760] postgres@postgres LOG:  statement: SELECT
+	    db.oid as did, db.datname as name, ta.spcname as spcname, db.datallowconn,
+	    db.datistemplate AS is_template,
+	    pg_catalog.has_database_privilege(db.oid, 'CREATE') as cancreate, datdba as owner,
+	    descr.description
+	FROM
+	    pg_catalog.pg_database db
+	    LEFT OUTER JOIN pg_catalog.pg_tablespace ta ON db.dattablespace = ta.oid
+	    LEFT OUTER JOIN pg_catalog.pg_shdescription descr ON (
+	        db.oid=descr.objoid AND descr.classoid='pg_database'::regclass
+	    )
+	WHERE         db.oid > 16383::OID OR db.datname IN ('postgres', 'edb')
+	
+	ORDER BY datname;
+2026-03-23 22:51:12 EET [15824] postgres@fastapi LOG:  statement: 
+	            SELECT COUNT(*) FROM pg_extension WHERE extname IN (
+	                'edb_job_scheduler', 'dbms_scheduler') 
+2026-03-23 22:51:18 EET [15824] postgres@fastapi LOG:  statement: SELECT
+	    nsp.oid,
+	    nsp.nspname as name,
+	    pg_catalog.has_schema_privilege(nsp.oid, 'CREATE') as can_create,
+	    pg_catalog.has_schema_privilege(nsp.oid, 'USAGE') as has_usage,
+	    des.description
+	FROM
+	    pg_catalog.pg_namespace nsp
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON
+	        (des.objoid=nsp.oid AND des.classoid='pg_namespace'::regclass)
+	WHERE
+	             nspname NOT LIKE E'pg\\_%' AND
+	            NOT (
+	(nsp.nspname = 'pg_catalog' AND EXISTS
+	        (SELECT 1 FROM pg_catalog.pg_class WHERE relname = 'pg_class' AND
+	            relnamespace = nsp.oid LIMIT 1)) OR
+	    (nsp.nspname = 'pgagent' AND EXISTS
+	        (SELECT 1 FROM pg_catalog.pg_class WHERE relname = 'pga_job' AND
+	            relnamespace = nsp.oid LIMIT 1)) OR
+	    (nsp.nspname = 'information_schema' AND EXISTS
+	        (SELECT 1 FROM pg_catalog.pg_class WHERE relname = 'tables' AND
+	            relnamespace = nsp.oid LIMIT 1))
+	    )
+	
+	    
+	ORDER BY nspname;
+2026-03-23 22:51:18 EET [15824] postgres@fastapi LOG:  statement: SELECT
+	    nsp.nspname as schema_name,
+	    (nsp.nspname = 'pg_catalog' AND EXISTS
+	        (SELECT 1 FROM pg_catalog.pg_class WHERE relname = 'pg_class' AND
+	            relnamespace = nsp.oid LIMIT 1)) OR
+	    (nsp.nspname = 'pgagent' AND EXISTS
+	        (SELECT 1 FROM pg_catalog.pg_class WHERE relname = 'pga_job' AND
+	            relnamespace = nsp.oid LIMIT 1)) OR
+	    (nsp.nspname = 'information_schema' AND EXISTS
+	        (SELECT 1 FROM pg_catalog.pg_class WHERE relname = 'tables' AND
+	            relnamespace = nsp.oid LIMIT 1)) AS is_catalog,
+	    CASE
+	    WHEN nsp.nspname = ANY('{information_schema}')
+	        THEN false
+	    ELSE true END AS db_support
+	FROM
+	    pg_catalog.pg_namespace nsp
+	WHERE
+	    nsp.oid = 2200::OID;
+2026-03-23 22:51:21 EET [15824] postgres@fastapi LOG:  statement: SELECT rel.oid, rel.relname AS name,
+	    (SELECT count(*) FROM pg_catalog.pg_trigger WHERE tgrelid=rel.oid AND tgisinternal = FALSE) AS triggercount,
+	    (SELECT count(*) FROM pg_catalog.pg_trigger WHERE tgrelid=rel.oid AND tgisinternal = FALSE AND tgenabled = 'O') AS has_enable_triggers,
+	    (CASE WHEN rel.relkind = 'p' THEN true ELSE false END) AS is_partitioned,
+	    (SELECT count(1) FROM pg_catalog.pg_inherits WHERE inhrelid=rel.oid LIMIT 1) as is_inherits,
+	    (SELECT count(1) FROM pg_catalog.pg_inherits WHERE inhparent=rel.oid LIMIT 1) as is_inherited,
+	    des.description
+	FROM pg_catalog.pg_class rel
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=rel.oid AND des.objsubid=0 AND des.classoid='pg_class'::regclass)
+	    WHERE rel.relkind IN ('r','s','t','p') AND rel.relnamespace = 2200::oid
+	    AND NOT rel.relispartition
+	        ORDER BY rel.relname;
+2026-03-23 22:51:21 EET [15824] postgres@fastapi LOG:  statement: SELECT
+	    CASE WHEN c.relkind = 'p' THEN True ELSE False END As ptable
+	FROM
+	    pg_catalog.pg_class c
+	WHERE
+	    c.oid = 16411::oid
+	
+2026-03-23 22:53:44 EET [7760] postgres@postgres LOG:  statement: SELECT CASE WHEN usesuper
+	       THEN pg_catalog.pg_is_in_recovery()
+	       ELSE FALSE
+	       END as inrecovery,
+	       CASE WHEN usesuper AND pg_catalog.pg_is_in_recovery()
+	       THEN pg_is_wal_replay_paused()
+	       ELSE FALSE
+	       END as isreplaypaused
+	FROM pg_catalog.pg_user WHERE usename=current_user
+2026-03-23 22:53:44 EET [7760] postgres@postgres LOG:  statement: SELECT CASE
+	    WHEN (SELECT count(extname) FROM pg_catalog.pg_extension WHERE extname='bdr') > 0
+	    THEN 'pgd'
+	    WHEN (SELECT COUNT(*) FROM pg_replication_slots) > 0
+	    THEN 'log'
+	    ELSE NULL
+	END as type;
+2026-03-23 22:53:44 EET [23172] postgres@fastapi LOG:  statement: SET DateStyle=ISO; SET client_min_messages=notice; SELECT set_config('bytea_output','hex',false) FROM pg_show_all_settings() WHERE name = 'bytea_output'; SET client_encoding='utf-8';
+2026-03-23 22:53:44 EET [23172] postgres@fastapi LOG:  statement: SELECT version()
+2026-03-23 22:53:44 EET [23172] postgres@fastapi LOG:  statement: 
+	SELECT
+	    db.oid as did, db.datname, db.datallowconn,
+	    pg_encoding_to_char(db.encoding) AS serverencoding,
+	    has_database_privilege(db.oid, 'CREATE') as cancreate,
+	    datistemplate
+	FROM
+	    pg_catalog.pg_database db
+	WHERE db.datname = current_database()
+2026-03-23 22:53:44 EET [23172] postgres@fastapi LOG:  statement: 
+	        SELECT
+	             gss_authenticated, encrypted
+	        FROM
+	            pg_catalog.pg_stat_gssapi
+	        WHERE pid = pg_backend_pid()
+2026-03-23 22:53:44 EET [23172] postgres@fastapi LOG:  statement: 
+	        SELECT
+	            roles.oid as id, roles.rolname as name,
+	            roles.rolsuper as is_superuser,
+	            CASE WHEN roles.rolsuper THEN true ELSE roles.rolcreaterole END as
+	            can_create_role,
+	            CASE WHEN roles.rolsuper THEN true
+	            ELSE roles.rolcreatedb END as can_create_db,
+	            CASE WHEN 'pg_signal_backend'=ANY(ARRAY(WITH RECURSIVE cte AS (
+	            SELECT pg_roles.oid,pg_roles.rolname FROM pg_roles
+	                WHERE pg_roles.oid = roles.oid
+	            UNION ALL
+	            SELECT m.roleid,pgr.rolname FROM cte cte_1
+	                JOIN pg_auth_members m ON m.member = cte_1.oid
+	                JOIN pg_roles pgr ON pgr.oid = m.roleid)
+	            SELECT rolname  FROM cte)) THEN True
+	            ELSE False END as can_signal_backend
+	        FROM
+	            pg_catalog.pg_roles as roles
+	        WHERE
+	            rolname = current_user
+2026-03-23 22:53:44 EET [23172] postgres@fastapi LOG:  statement: SHOW logging_collector;
+	SHOW log_destination;
+	
+2026-03-23 22:53:44 EET [23172] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 22:53:44 EET [23172] postgres@fastapi DETAIL:  Parameters: $1 = '{25}'
+2026-03-23 22:53:47 EET [23172] postgres@fastapi LOG:  statement: SHOW logging_collector;
+	SHOW log_destination;
+	
+2026-03-23 22:53:47 EET [23172] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 22:53:47 EET [23172] postgres@fastapi DETAIL:  Parameters: $1 = '{25}'
+2026-03-23 22:53:56 EET [9292] postgres@fastapi LOG:  statement: SET DateStyle=ISO; SET client_min_messages=notice; SELECT set_config('bytea_output','hex',false) FROM pg_show_all_settings() WHERE name = 'bytea_output'; SET client_encoding='utf-8';
+2026-03-23 22:53:56 EET [9292] postgres@fastapi LOG:  statement: SELECT version()
+2026-03-23 22:53:56 EET [9292] postgres@fastapi LOG:  statement: 
+	SELECT
+	    db.oid as did, db.datname, db.datallowconn,
+	    pg_encoding_to_char(db.encoding) AS serverencoding,
+	    has_database_privilege(db.oid, 'CREATE') as cancreate,
+	    datistemplate
+	FROM
+	    pg_catalog.pg_database db
+	WHERE db.datname = current_database()
+2026-03-23 22:53:56 EET [9292] postgres@fastapi LOG:  statement: 
+	        SELECT
+	             gss_authenticated, encrypted
+	        FROM
+	            pg_catalog.pg_stat_gssapi
+	        WHERE pid = pg_backend_pid()
+2026-03-23 22:53:56 EET [9292] postgres@fastapi LOG:  statement: 
+	        SELECT
+	            roles.oid as id, roles.rolname as name,
+	            roles.rolsuper as is_superuser,
+	            CASE WHEN roles.rolsuper THEN true ELSE roles.rolcreaterole END as
+	            can_create_role,
+	            CASE WHEN roles.rolsuper THEN true
+	            ELSE roles.rolcreatedb END as can_create_db,
+	            CASE WHEN 'pg_signal_backend'=ANY(ARRAY(WITH RECURSIVE cte AS (
+	            SELECT pg_roles.oid,pg_roles.rolname FROM pg_roles
+	                WHERE pg_roles.oid = roles.oid
+	            UNION ALL
+	            SELECT m.roleid,pgr.rolname FROM cte cte_1
+	                JOIN pg_auth_members m ON m.member = cte_1.oid
+	                JOIN pg_roles pgr ON pgr.oid = m.roleid)
+	            SELECT rolname  FROM cte)) THEN True
+	            ELSE False END as can_signal_backend
+	        FROM
+	            pg_catalog.pg_roles as roles
+	        WHERE
+	            rolname = current_user
+2026-03-23 22:53:58 EET [9292] postgres@fastapi LOG:  statement: SHOW logging_collector;
+	SHOW log_destination;
+	
+2026-03-23 22:53:58 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 22:53:58 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{25}'
+2026-03-23 22:55:26 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM any_table;
+2026-03-23 22:55:26 EET [9292] postgres@fastapi ERROR:  relation "any_table" does not exist at character 15
+2026-03-23 22:55:26 EET [9292] postgres@fastapi STATEMENT:  SELECT * FROM any_table;
+2026-03-23 22:55:34 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 22:55:34 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 22:55:34 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 22:55:34 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 22:55:34 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 22:55:34 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 22:55:34 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:17:37 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:17:38 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:17:38 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:17:39 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:17:39 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:17:39 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:17:39 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:17:39 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:17:39 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:17:39 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:50 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:50 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:50 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:51 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:51 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:51 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:51 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:51 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:52 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:52 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:52 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:52 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:52 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:53 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:53 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:53 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:53 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:20:54 EET [9292] postgres@fastapi LOG:  statement: SELECT * FROM cars;
+2026-03-23 23:20:54 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, ty.typname, at.attnum
+	    FROM pg_catalog.pg_attribute at
+	    LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	    JOIN pg_catalog.pg_class as cl ON cl.oid=at.attrelid
+	    JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	at.attnum > 0
+	AND at.attisdropped = FALSE
+2026-03-23 23:20:54 EET [9292] postgres@fastapi LOG:  statement: SELECT at.attname, at.attnum, ty.typname
+	FROM pg_catalog.pg_attribute at LEFT JOIN pg_catalog.pg_type ty ON (ty.oid = at.atttypid)
+	JOIN pg_catalog.pg_class as cl ON cl.oid=AT.attrelid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=cl.relnamespace
+	WHERE
+	    attrelid=16411::oid AND
+	attnum = ANY (
+	(SELECT con.conkey FROM pg_catalog.pg_class rel LEFT OUTER JOIN pg_catalog.pg_constraint con ON con.conrelid=rel.oid
+	JOIN pg_catalog.pg_namespace as nsp ON nsp.oid=REL.relnamespace
+	AND con.contype='p' WHERE rel.relkind IN ('r','s','t', 'p') AND
+	    rel.oid = (16411)::oid
+	)::oid[])
+2026-03-23 23:20:54 EET [9292] postgres@fastapi LOG:  statement: SELECT DISTINCT att.attname as name, att.attnum as OID, pg_catalog.format_type(ty.oid,NULL) AS datatype,
+	pg_catalog.format_type(ty.oid,att.atttypmod) AS displaytypname,
+	att.attnotnull as not_null,
+	CASE WHEN att.atthasdef OR att.attidentity != '' OR ty.typdefault IS NOT NULL THEN True
+	ELSE False END as has_default_val, des.description, seq.seqtypid
+	FROM pg_catalog.pg_attribute att
+	    JOIN pg_catalog.pg_type ty ON ty.oid=atttypid
+	    JOIN pg_catalog.pg_namespace tn ON tn.oid=ty.typnamespace
+	    JOIN pg_catalog.pg_class cl ON cl.oid=att.attrelid
+	    JOIN pg_catalog.pg_namespace na ON na.oid=cl.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_type et ON et.oid=ty.typelem
+	    LEFT OUTER JOIN pg_catalog.pg_attrdef def ON adrelid=att.attrelid AND adnum=att.attnum
+	    LEFT OUTER JOIN (pg_catalog.pg_depend JOIN pg_catalog.pg_class cs ON classid='pg_class'::regclass AND objid=cs.oid AND cs.relkind='S') ON refobjid=att.attrelid AND refobjsubid=att.attnum
+	    LEFT OUTER JOIN pg_catalog.pg_namespace ns ON ns.oid=cs.relnamespace
+	    LEFT OUTER JOIN pg_catalog.pg_index pi ON pi.indrelid=att.attrelid AND indisprimary
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=att.attrelid AND des.objsubid=att.attnum AND des.classoid='pg_class'::regclass)
+	    LEFT OUTER JOIN pg_catalog.pg_sequence seq ON cs.oid=seq.seqrelid
+	WHERE
+	
+	    att.attrelid = 16411::oid
+	    AND att.attnum > 0
+	    AND att.attisdropped IS FALSE
+	ORDER BY att.attnum
+2026-03-23 23:20:54 EET [9292] postgres@fastapi LOG:  statement: SELECT n.nspname, r.relname
+	FROM pg_catalog.pg_class r
+	    LEFT JOIN pg_catalog.pg_namespace n ON (r.relnamespace = n.oid)
+	WHERE r.oid = 16411;
+	
+2026-03-23 23:20:54 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:20:54 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{2950,1043,1043,1700,1700,16,1184}'
+2026-03-23 23:22:45 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:45 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:45 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:22:45 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:45 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:45 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:22:45 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:45 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:45 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:22:46 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:46 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:46 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:22:46 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:46 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:46 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:22:46 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:46 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:46 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:22:46 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:46 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:46 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:22:50 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:50 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:50 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:22:50 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:50 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:50 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:22:50 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:22:50 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:22:50 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:14 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:14 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:14 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:14 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:14 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:14 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:15 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:15 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:15 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:15 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:15 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:15 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:15 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:15 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:15 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:15 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:15 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:15 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:15 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:16 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:16 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:16 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:16 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:16 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:16 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:16 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:16 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:16 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:16 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:16 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:16 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:16 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:16 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:17 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:17 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:17 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:17 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:17 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:17 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:18 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:18 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:18 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:18 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  statement: SELECT NOW();
+2026-03-23 23:33:18 EET [9292] postgres@fastapi LOG:  execute <unnamed>: SELECT oid, pg_catalog.format_type(oid, NULL) AS typname FROM pg_catalog.pg_type WHERE oid = ANY($1) ORDER BY oid;
+2026-03-23 23:33:18 EET [9292] postgres@fastapi DETAIL:  Parameters: $1 = '{1184}'

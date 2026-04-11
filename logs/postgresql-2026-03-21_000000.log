@@ -1,0 +1,16 @@
+2026-03-21 01:21:16 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-21 01:21:16 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-21 01:21:16 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-21 21:44:42 EET FATAL:  password authentication failed for user "postgres"
+2026-03-21 21:44:42 EET DETAIL:  Connection matched file "C:/Program Files/PostgreSQL/17/data/pg_hba.conf" line 117: "host    all             all             ::1/128                 scram-sha-256"
+2026-03-21 21:44:42 EET FATAL:  password authentication failed for user "postgres"
+2026-03-21 21:44:42 EET DETAIL:  Connection matched file "C:/Program Files/PostgreSQL/17/data/pg_hba.conf" line 115: "host    all             all             127.0.0.1/32            scram-sha-256"
+2026-03-22 00:45:05 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-22 00:45:05 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-22 00:45:05 EET LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
