@@ -1,10 +1,11 @@
 from asyncio import gather
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 from typing import Dict, List, Any, Type, TypeVar, Generic, Optional
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel as PydanticBaseModel
-from pydantic import validator
+from pydantic import field_validator
+from logging_config import logger
 import uuid
 import json
 import os
@@ -19,8 +20,9 @@ class StorageMixin(Generic[T]) : # generic class for storage operations in any c
         self._initialize_storage()
         self.load()
     def _initialize_storage (self) :
-        if not os.path.exists(self.storage_path) :
+        if not os.path.exists((os.path.dirname(self.storage_path))) : # create directory if it doesn't exist
             os.makedirs(os.path.dirname(self.storage_path), exist_ok=True)
+        if not os.path.exists(self.storage_path): # create file if it doesn't exist file for what ?
             with open(self.storage_path, "w") as f :
                 json.dump({}, f)
     def save (self) -> None :
@@ -29,7 +31,7 @@ class StorageMixin(Generic[T]) : # generic class for storage operations in any c
             with open(temp_path, "w",encoding='utf-8') as f : 
                 serialized_data= {uid :obj.to_dict() for uid ,obj in self.data.items()} # convert to dict
                 json.dump(serialized_data, f, indent=4, ensure_ascii=False) # ascii means ascii characters only
-            shutil.move(temp_path, self.storage_path) # atomic operation
+            shutil.move(temp_path, self.storage_path) # atomic operation means if the operation fails, the original file is not lost
 
         except Exception as e:
             if os.path.exists(temp_path):
@@ -82,7 +84,7 @@ class BaseModel : # automated clening data
         
     def to_dict (self) -> Dict[str,Any] : #
         return self.extra_data # return the extra data
-    def __post_init__ (self) : 
+    def __post_init__ (self) -> None: 
         self.sync_data()     # 
 
 
@@ -91,7 +93,7 @@ class BaseModel : # automated clening data
 class BaseSchema (BaseModel) : # for api responses # to generate uid to any thing to the system
     uid : Optional [str]  = None # in dataclass  there is no thing called init= None so
     created_at : datetime = field(default_factory=datetime.now)
-    def __post_init__ (self) :
+    def __post_init__ (self) -> None:
         if not self.uid:
             self.uid = str(uuid.uuid4()) # generate a unique id because we need it for the api responses and python donot ask for uid when we create that object (not in the init) so we need to generate it manually here
         if isinstance(self.created_at, str): # 
@@ -111,7 +113,7 @@ class PydanticBaseSchema (PydanticBaseModel) : # for api responses
     class Config : 
         arbitrary_types_allowed = True # allow arbitrary types
         json_encoders = {datetime: lambda v: v.isoformat()} # encode datetime as iso format
-        validate_assignment =True
+        validate_assignment =True # validate assignment
     def to_dict(self) -> Dict [str, Any] :
         return self.dict() 
 
