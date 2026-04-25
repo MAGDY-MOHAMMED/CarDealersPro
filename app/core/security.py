@@ -41,10 +41,11 @@ async def validate_token_payload (token: str) -> TokenData: # how ? by using the
             algorithms=[settings.ALGORITHM] # the algorithm to use , jwt.decode expects a list of algorithms so [settings.ALGORITHM]
         )
         user_id = payload.get("sub") # get the user id from the payload
+        role = payload.get("role") # get the user role from the payload
         if user_id is None:
             logger.error("User ID not found in token payload", extra={"request_id": get_request_id()})
-            raise credentials_exception 
-        return TokenData(user_id=user_id) # return the token data object with the user id
+            raise credentials_exception
+        return TokenData(user_id=user_id, role=role) # return the token data object with the user id and role
     except (jwt.JWTError, ValidationError): # this is for JWT errors or validation errors
         logger.warning("JWT Error occurred while verifying access token", extra={"request_id": get_request_id()})
         raise credentials_exception
@@ -52,7 +53,7 @@ async def validate_token_payload (token: str) -> TokenData: # how ? by using the
         logger.error(f"An unexpected error occurred while verifying access token: {e}", extra={"request_id": get_request_id()})
         raise credentials_exception 
 
-    
+
 
  # method for getting the authenticated user for routes
 async def get_auth_user(token: str = Depends(oauth2_scheme)) -> TokenData: # depends here means that the function will be called when the route is accessed

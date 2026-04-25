@@ -2,85 +2,39 @@ version: '3.8'
 
 services:
   # ============================================================
+  # FastAPI: الـ API
+  # ============================================================
+  api:
+    build: .
+    container_name: cardealers-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - main-net
+
+  # ============================================================
   # PostgreSQL: قاعدة البيانات
   # ============================================================
-  postgres:
+  db:
     image: postgres:15
-    container_name: postgres
-    environment:
-      - POSTGRES_DB=fastapi
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Magdy123456
+    container_name: postgres-db
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
-      - elk-net
-
-  # ============================================================
-  # Elasticsearch: تخزين وتحليل اللوجات
-  # ============================================================
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node # single node mode
-      - xpack.security.enabled=false   # تعطيل الأمان للتجربة (في الإنتاج فعّل)
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m # memory allocation
-    ports:
-      - "9200:9200"   # REST API
-    volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data   # حفظ البيانات على volume
-    networks:
-      - elk-net
-
-  # ============================================================
-  # Kibana: واجهة عرض اللوجات
-  # ============================================================
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.12.0
-    container_name: kibana
-    ports:
-      - "5601:5601"
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    networks:
-      - elk-net
-
-  # ============================================================
-  # Filebeat: جمع اللوجات من PostgreSQL (مثبت على الـ host)
-  # ============================================================
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:8.12.0
-    container_name: filebeat
-    user: root   # عشان يقدر يقرأ من مجلدات الـ host (لازم صلاحيات)
-    command: ["--strict.perms=false", "-c", "/usr/share/filebeat/filebeat.yml"]
-    environment:
-      - output.elasticsearch.hosts=["elasticsearch:9200"]
-      - setup.template.name=cardealerspro
-      - setup.template.pattern=cardealerspro-*
-      - setup.template.enabled=true
-      - setup.template.overwrite=true
-    volumes:
-      # ملف الإعدادات بتاعنا
-      - ./filebeat_env.yml:/usr/share/filebeat/filebeat.yml:ro
-      # الربط السليم: مجلد الـ logs من المشروع
-      - ./logs:/var/log/cardealerspro:ro
-
-    depends_on:
-      - elasticsearch
-    networks:
-      - elk-net
+      - main-net
 
 networks:
-  elk-net:
+  main-net:
     driver: bridge
 
 volumes:
-  elasticsearch-data:
-    driver: local
   postgres-data:
-    external: true
+    driver: local

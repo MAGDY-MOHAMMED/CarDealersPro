@@ -3,7 +3,7 @@ from typing import List, Dict, Any, Optional
 from enum import Enum, unique
 from datetime import datetime
 from core.base import BaseSchema , StorageMixin
-from core.auth import ClientProfile, BankProfile 
+from core.auth import ClientProfile, BankProfile , User
 from core.vehicles import VEHICLE , InventoryManager
 from core.config import FINANCE_CONFIG
 import os

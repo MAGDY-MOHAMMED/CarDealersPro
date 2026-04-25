@@ -1,6 +1,6 @@
 #import sys from pathlib import Path project_root = Path(__file__).resolve().parent.parent if str(project_root) not in sys.path:    sys.path.insert(0, str(project_root))
 
-from fastapi import FastAPI, HTTPException, status, Response , Depends ,Request 
+from fastapi import FastAPI, Request 
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict # for pydantic v2
 import uuid
@@ -21,7 +21,9 @@ from core.request_id import ensure_request_id, request_id_var
 import sqlalchemy
 from app.routers import users, cars
 from app.routers import auth
+from app.routers import ratings
 from sqlalchemy import select
+from fastapi.middleware.cors import CORSMiddleware
 
 
 
@@ -62,12 +64,24 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         
 
 app = FastAPI(title="Car Dealers Pro API") # create the FastAPI app
+
+origins = [
+    "*"
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.add_middleware(RequestIDMiddleware) # add request ID middleware to the app
 
 app.include_router(users.router) # include the users router
 app.include_router(cars.router) # include the cars router
 app.include_router(auth.router) # include the auth router
-
+app.include_router(ratings.router) # include the ratings router
 
 
 
@@ -75,6 +89,10 @@ app.include_router(auth.router) # include the auth router
 @app.get("/") # root endpoint
 async def root ():
     return {"status": "Online", "engine": "CarDealers Pro API"}
+
+@app.get("/health") # health check endpoint for cloud/load balancer
+async def health():
+    return {"status": "ok"}
 
 
 
@@ -101,6 +119,7 @@ async def Validation_exception_handler (request : Request , exc : RequestValidat
         status_code = 422, # unprocessable entity
         content = {
             "detail" : exc.errors(),  # for all missing things not one 
+            "body" : str(exc.body), # for the body of the request
             "request_id" : get_request_id(),
         },
     )

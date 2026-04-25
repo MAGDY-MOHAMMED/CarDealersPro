@@ -5,15 +5,13 @@ from typing import AsyncGenerator
 from core.logging_config import logger 
 from core.request_id import get_request_id
 from core.logging_config import logger 
-from core.db_cursor import RequestIDCursor
-import logging
+from app.core.config import settings
 
 
-
-SQL_ALCHEMY_URL = "postgresql+asyncpg://postgres:Magdy123456@localhost:5432/fastapi" # why asyncpg ? because it's faster than psycopg
+SQL_ALCHEMY_URL = f"postgresql+asyncpg://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOSTNAME}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}" # why asyncpg ? because it's faster than psycopg
 engine = create_async_engine(SQL_ALCHEMY_URL, pool_size=10, max_overflow=20) # pool_size is the number of connections to keep in the pool, max_overflow is the number of connections to create beyond the pool_size
-
-@event.listens_for(engine.sync_engine, "before_cursor_execute")
+# this event is used to add request id to the sql queries for better debugging and tracing
+@event.listens_for(engine.sync_engine, "before_cursor_execute") # pragma: no cover - database event
 def add_request_id_to_logs(conn, cursor, statement, parameters, context, executemany):
     request_id= get_request_id()
     if request_id :
@@ -28,8 +26,7 @@ def add_request_id_to_logs(conn, cursor, statement, parameters, context, execute
 
 
 
-
-SessionLocal = async_sessionmaker(
+SessionLocal = async_sessionmaker( # pragma: no cover - database session
     autocommit=False, 
     autoflush=False, 
     bind=engine, 
@@ -45,7 +42,7 @@ class Base(DeclarativeBase):
     pass
 
 
-#"host=localhost dbname=fastapi user=postgres password=Magdy123456"
+#"host=localhost dbname=fastapi user=postgres password=your_password"
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -61,5 +58,3 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally :
             await session.close() # close the connection
-
-

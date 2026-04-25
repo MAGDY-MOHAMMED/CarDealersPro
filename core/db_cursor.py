@@ -2,6 +2,9 @@ from typing import Any, Optional, Tuple, List
 from psycopg import cursor
 from core.request_id import get_request_id
 
+#this file is used to add request id to the sql queries for better debugging and tracing
+#RequestIDCursor - For sync psycopg connections only
+
 
 
 class RequestIDCursor :

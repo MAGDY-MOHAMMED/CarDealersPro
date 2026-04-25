@@ -13,7 +13,10 @@ from core.logging_config import logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(
+    prefix="/auth",
+    tags=["auth"]
+)
 
 
 # TODO: Implement login endpoint
@@ -29,7 +32,7 @@ async def login(user_credentials : UserLogin , db : AsyncSession = Depends(get_d
             detail="Invalid credentials"
         )
     logger.info(f"User logged in successfully: {user.email}", extra={"user_id": user.id})
-    access_token = await Create_Access_Token(data={"sub" : str(user.id)}) # sub means subject (user id) ,  jwt can't encode UUID directly so we convert it to string
+    access_token = await Create_Access_Token(data={"sub" : str(user.id), "role": user.role.value}) # sub means subject (user id) ,  jwt can't encode UUID directly so we convert it to string, role is the user role
 
     return {"access_token": access_token, "token_type": "bearer"}
     

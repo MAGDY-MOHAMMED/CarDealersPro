@@ -1,10 +1,12 @@
 from .database import Base
-from sqlalchemy import Column, Integer, String ,Boolean, DateTime ,text , ForeignKey
+from sqlalchemy import Column, Integer, String ,Boolean, DateTime ,text , ForeignKey , Float , CheckConstraint ,Enum
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import column_property, relationship
 import uuid
-
+from pydantic import BaseModel, Field
+from sqlalchemy import select
+from core.auth import UserRole  
 
 class User (Base):
     __tablename__ = "users"
@@ -14,6 +16,11 @@ class User (Base):
         primary_key= True,
         default=uuid.uuid4, 
         server_default=text("gen_random_uuid()")
+        )
+    role = Column( # Client , bank , Inspector , Dealer
+        Enum(UserRole),
+        nullable=False,
+        server_default=UserRole.CLIENT.value # default role is client , postrge stores enum as string
         )
     email = Column(
         String, 
@@ -54,11 +61,17 @@ class Car (Base) :
     model = Column (
         String, 
         nullable= False)
+    color = Column (
+        String, 
+        nullable= True)
     year = Column (
         Integer, 
         nullable= False) 
-    price = Column (
-        Integer, 
+    price_consumer = Column (
+        Float, 
+        nullable= False)
+    price_dealer = Column (
+        Float, 
         nullable= False)
     published = Column (
         Boolean, 
@@ -77,8 +90,93 @@ class Car (Base) :
         ) # now it is required in the route
     owner = relationship("User", back_populates="cars") # back_populates= cars means that the relationship is bidirectional means that when we access car.owner, we get the owner of that car
 
+    owner_name = column_property( # this is a virtual column that is not stored in the database but is computed on the fly
+        select(User.full_name)
+        .where(User.id == owner_id)
+        .correlate_except(User) # this is to prevent the query from being correlated with the parent query
+        .scalar_subquery() # this is to return a single value
+    )
+
     is_deleted = Column(
         Boolean,
         nullable=False,
         server_default='False'
         )
+
+
+class CarRating (Base) :
+    __tablename__ = "car_ratings"
+    
+    user_id = Column (
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        primary_key=True
+    )
+    car_id = Column (
+        UUID(as_uuid=True),
+        ForeignKey("cars.id"),
+        primary_key=True
+    )
+    value_score = Column(
+        Integer, 
+        nullable=False
+    )
+
+    comment = Column(
+        String,
+        nullable=True
+    )
+    is_ai_generated = Column(
+        Boolean, 
+        default=False
+    )
+    created_at = Column(
+        DateTime(timezone=True), 
+        server_default=func.now()
+    )
+    # here we are using __table_args__ to add a check constraint to the table
+    __table_args__ = (
+        CheckConstraint(
+            'value_score >= 0 AND value_score <= 100', #to ensure the value score is between 0 and 100
+            name='check_value_score_range' #to name the check constraint
+        ),
+    )
+
+class UserRating(Base):
+    __tablename__ = "user_ratings"
+
+    #
+    rater_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"), 
+        primary_key=True
+    )
+    #
+    target_user_id = Column( 
+        UUID(as_uuid=True),
+        ForeignKey("users.id"), 
+        primary_key=True
+    )
+
+    trust_score = Column(# 0 to 100 
+        Integer, nullable=False
+        )
+    #review text for the trust score
+    review_text = Column(
+        String,
+        nullable=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now())
+    #time to check constraints
+    __table_args__ = (
+        CheckConstraint(
+            'trust_score >= 0 AND trust_score <= 100',
+            name='check_trust_score_range'
+        ), #to ensure the trust score is between 0 and 100
+        CheckConstraint(
+            'rater_id != target_user_id',
+            name='check_not_self_rating'
+        ), #to prevent the user to rate himself
+    )
+

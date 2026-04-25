@@ -1,3 +1,7 @@
+"""
+Utility functions and helpers
+"""
+
 import bcrypt
 from core.logging_config import logger
 
@@ -13,3 +17,4 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         plain_password.encode('utf-8'),  # encode the plain password to bytes why ? because bcrypt.checkpw() expects bytes
         hashed_password.encode('utf-8')  # encode the hashed password to bytes why ? because bcrypt.checkpw() expects bytes
     ) # verify the password
+
