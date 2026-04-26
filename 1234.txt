@@ -1,0 +1,10 @@
+cardealers_pro/
+├── app/
+│   ├── api/            # الـ Endpoints (الروابط اللي الموبايل بيكلمها)
+│   ├── core/           # الإعدادات الثابتة (Security, Config)
+│   ├── models/         # جداول قاعدة البيانات (SQLAlchemy/SQLModel)
+│   ├── schemas/        # الـ Pydantic Models (اللي بتذاكرها دلوقتي)
+│   ├── services/       # الـ Logic التقيل (حسابات الـ AI، فحص الأسعار)
+│   └── main.py         # نقطة الانطلاق
+├── requirements.txt    # المكتبات المطلوبة
+└── .env                # البيانات السرية (Passwords)

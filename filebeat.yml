@@ -1,0 +1,68 @@
+# Filebeat Configuration for CarDealersPro
+# ==========================================
+
+filebeat.inputs:
+  # Application logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/cardealerspro/*.log
+    json.keys_under_root: true
+    json.overwrite_keys: true
+    tail_files: false
+    ignore_older: 72h
+    fields:
+      project_name: "CarDealersPro"
+      log_type: "application"
+    fields_under_root: true
+
+  # PostgreSQL logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/cardealerspro/postgresql_logs.json
+    json.keys_under_root: true
+    json.overwrite_keys: true
+    tail_files: false
+    ignore_older: 72h
+    fields:
+      project_name: "CarDealersPro"
+      log_type: "postgresql"
+    fields_under_root: true
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - script:
+      lang: javascript
+      source: >
+        function process(event) {
+          // Extract request_id from log message if present
+          var message = event.Get("message");
+          if (message && typeof message === 'string') {
+            var requestIdMatch = message.match(/\[request_id:\s*([^\]]+)\]/);
+            if (requestIdMatch) {
+              event.Put("request_id", requestIdMatch[1]);
+            }
+          }
+          return event;
+        }
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  index: "cardealerspro-logs-%{+yyyy.MM.dd}"
+  template.name: "cardealerspro"
+  template.pattern: "cardealerspro-*"
+  template.enabled: true
+  template.overwrite: true
+
+setup.template.name: "cardealerspro"
+setup.template.pattern: "cardealerspro-*"
+setup.template.enabled: true
+setup.template.overwrite: true
+
+logging.level: info
+logging.to_files: false
+logging.to_syslog: false
