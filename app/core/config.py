@@ -2,19 +2,20 @@ from pydantic_settings import BaseSettings
 from pathlib import Path
 from core.logging_config import logger
 import base64
+from pydantic import field_validator
 
 # this file for settings and configurations for the application
 class Settings(BaseSettings):
     # Database Settings (must match .env variable names)
-    DATABASE_HOSTNAME: str
-    DATABASE_PORT: int
-    DATABASE_NAME: str
-    DATABASE_PASSWORD: str
-    DATABASE_USERNAME: str
+    DATABASE_HOSTNAME: str = "localhost"
+    DATABASE_PORT: int = 5432
+    DATABASE_NAME: str = "CarDealersPro"
+    DATABASE_USERNAME: str = "postgres"
+    DATABASE_PASSWORD: str = ""
 
     # JWT Settings
-    ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    ALGORITHM: str = "RS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # RSA Keys (base64 encoded environment variables for cloud deployment)
     PRIVATE_KEY_BASE64: str | None = None
@@ -27,6 +28,13 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+
+    @field_validator('DATABASE_PASSWORD')
+    @classmethod
+    def validate_database_password(cls, v: str) -> str:
+        if not v or v == "your_password_here":
+            raise ValueError('DATABASE_PASSWORD is required and must be set in .env file')
+        return v
 
     @property # it's a property that returns a value
     def private_key(self) -> str:

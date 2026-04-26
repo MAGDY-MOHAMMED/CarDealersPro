@@ -13,9 +13,15 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
     # Use Render's DATABASE_URL and convert to asyncpg
     SQL_ALCHEMY_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+    logger.info("Using DATABASE_URL from environment", extra={"request_id": "N/A"})
 else:
     # Use local settings from config.py
-    SQL_ALCHEMY_URL = f"postgresql+asyncpg://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOSTNAME}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}"
+    try:
+        SQL_ALCHEMY_URL = f"postgresql+asyncpg://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOSTNAME}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}"
+        logger.info("Using local database configuration", extra={"request_id": "N/A"})
+    except Exception as e:
+        logger.error("Failed to construct database URL from settings", extra={"error": str(e), "request_id": "N/A"})
+        raise ValueError("Database configuration is incomplete. Please check your .env file.")
 
 engine = create_async_engine(SQL_ALCHEMY_URL, pool_size=10, max_overflow=20) # pool_size is the number of connections to keep in the pool, max_overflow is the number of connections to create beyond the pool_size
 # this event is used to add request id to the sql queries for better debugging and tracing
