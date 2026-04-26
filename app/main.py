@@ -66,7 +66,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 app = FastAPI(title="Car Dealers Pro API") # create the FastAPI app
 
 origins = [
-    "*"
+    "*" # allows all origins
 ]
 app.add_middleware(
     CORSMiddleware,
