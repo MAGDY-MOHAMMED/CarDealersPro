@@ -1,3 +1,12 @@
+---
+title: CarDealersPro
+emoji: 🏎️
+colorFrom: blue
+colorTo: gray
+sdk: docker
+pinned: false
+---
+
 # CarDealersPro
 
 Car Dealers Platform - FastAPI + PostgreSQL + Alembic
