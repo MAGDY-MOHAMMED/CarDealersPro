@@ -23,8 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Expose port (will be set by PORT environment variable)
-EXPOSE 8000
+# Expose port (Hugging Face uses 7860, can be overridden by PORT env var)
+EXPOSE 7860
 
-# Run the application using uvicorn (standard Docker practice)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application using self-contained uvicorn in main.py
+# This allows dynamic port detection for different platforms
+CMD ["python", "app/main.py"]

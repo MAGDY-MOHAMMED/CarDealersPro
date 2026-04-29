@@ -142,7 +142,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 if __name__ == "__main__":
     # Get port from environment variable (important for cloud platforms)
     # Hugging Face uses 7860, Render uses 8000, AWS can use any port
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 7860))
 
     # Run the server with production settings
     uvicorn.run(
