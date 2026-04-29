@@ -1,20 +1,21 @@
-#import sys from pathlib import Path project_root = Path(__file__).resolve().parent.parent if str(project_root) not in sys.path:    sys.path.insert(0, str(project_root))
-
-from fastapi import FastAPI, Request 
+import os
+import uvicorn
+from typing import Final
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, ConfigDict # for pydantic v2
+from pydantic import BaseModel, ConfigDict
 import uuid
 import time
 from uuid import UUID
 from http import HTTPStatus
-from app.database import get_db, engine , Base
+from app.database import get_db, engine, Base
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from core.request_id import set_request_id, generate_request_id , get_request_id
+from core.request_id import set_request_id, generate_request_id, get_request_id
 from core.logging_config import logger
-from app.models import Car , User
-from app.schemas import CarUpdate, CarsBase, CarResponse , CarUpdate , UserCreate , UserResponse
+from app.models import Car, User
+from app.schemas import CarUpdate, CarsBase, CarResponse, UserCreate, UserResponse
 from app.utils import get_password_hash, verify_password
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.request_id import ensure_request_id, request_id_var
@@ -26,17 +27,17 @@ from sqlalchemy import select
 from fastapi.middleware.cors import CORSMiddleware
 
 
-
-
-
+# Standardized Constants (using Final to prevent modification)
+APP_TITLE: Final = "CarDealersPro API"
+APP_VERSION: Final = "1.0.0"
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next): # override the dispatch method to add request ID to each request 
         request_id = generate_request_id()
         set_request_id(request_id)
-        start_time= time.time()
-        logger.info(f"Request started" , extra = {
+        start_time = time.time()
+        logger.info(f"Request started", extra={
             "method": request.method,
             "path": request.url.path, # get the path of the request
             "query_params": dict(request.query_params), # get the query parameters , ?key=value&key2=value2 this  is the query parameter separator
@@ -48,7 +49,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
             response.headers["X-Request-ID"] = request_id
             return response
         except Exception as e:
-            logger.exception("Request failed", extra = {"error" : str(e), "duration" : time.time() - start_time}) # log the request status
+            logger.exception("Request failed", extra={"error" : str(e), "duration" : time.time() - start_time}) # log the request status
             raise
         finally :
             duration = (time.time() - start_time) * 1000 # convert to milliseconds
@@ -60,10 +61,10 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
             # add status code if response exists
             if 'response' in locals () : # locals return a dictionary of local variables, we check if response is in it
                 log_params["status"] = response.status_code
-            logger.info("Request completed", extra = log_params)
-        
+            logger.info("Request completed", extra=log_params)
 
-app = FastAPI(title="Car Dealers Pro API") # create the FastAPI app
+
+app = FastAPI(title=APP_TITLE, version=APP_VERSION) # create the FastAPI app
 
 origins = [
     "*" # allows all origins
@@ -126,17 +127,29 @@ async def Validation_exception_handler (request : Request , exc : RequestValidat
 
 # handle unexpected exceptions
 @app.exception_handler(Exception)
-async def generic_exception_handler (request : Request , exc : Exception) : 
-    logger.exception ("Unexpected error occurred" , extra={"request_id": get_request_id()})
-    return JSONResponse (
-        status_code = 500,
-        content= {
-            "detail" : "Internal server error",
-            "request_id" : get_request_id(),
+async def generic_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unexpected error occurred", extra={"request_id": get_request_id()})
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "request_id": get_request_id(),
         }
     )
 
 
+# Self-contained uvicorn for cloud deployment (Hugging Face, AWS, Render)
+if __name__ == "__main__":
+    # Get port from environment variable (important for cloud platforms)
+    # Hugging Face uses 7860, Render uses 8000, AWS can use any port
+    port = int(os.environ.get("PORT", 8000))
 
-
+    # Run the server with production settings
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        reload=False,  # Always False in production
+        workers=1      # Free tiers provide 1 core, so don't use more
+    )
 
