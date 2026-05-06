@@ -6,7 +6,13 @@ from sqlalchemy.orm import column_property, relationship
 import uuid
 from pydantic import BaseModel, Field
 from sqlalchemy import select
-from core.auth import UserRole  
+from core.auth import UserRole
+import enum
+
+
+class MediaType(str, enum.Enum):
+    IMAGE = "image"
+    VIDEO = "video"  
 
 class User (Base):
     __tablename__ = "users"
@@ -180,3 +186,41 @@ class UserRating(Base):
         ), #to prevent the user to rate himself
     )
 
+
+class CarMedia(Base):
+    __tablename__ = "car_media"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        server_default=text("gen_random_uuid()")
+    )
+    car_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("cars.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    media_url = Column(
+        String,
+        nullable=False
+    )
+    media_type = Column(
+        Enum(MediaType),
+        nullable=False
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now()
+    )
+
+    car = relationship("Car", backref="media") # backref is used to access the media from the car object
+
+    car_name = column_property( # this is a virtual column that is not stored in the database
+        select(Car.brand + ' ' + Car.model)
+        .where(Car.id == car_id)
+        .correlate_except(Car) # to prevent the query from being correlated with the CarMedia table
+        .scalar_subquery() # to return a single value
+    )

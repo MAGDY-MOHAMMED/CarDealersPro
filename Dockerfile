@@ -24,6 +24,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Create storage directories with write permissions
+RUN mkdir -p /app/storage/uploads/images /app/storage/uploads/videos && \
+    chmod -R 755 /app/storage
+
 # Expose port (Hugging Face uses 7860, can be overridden by PORT env var)
 EXPOSE 7860
 

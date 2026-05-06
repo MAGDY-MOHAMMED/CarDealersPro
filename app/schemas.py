@@ -4,6 +4,7 @@ from pydantic_partial import create_partial_model
 from datetime import datetime
 from typing import Optional
 from core.auth import UserRole
+from app.models import MediaType
 
 class CarsBase(BaseModel):
     brand : str
@@ -67,3 +68,20 @@ class RatingBase(BaseModel):
 
 
 CarUpdate = create_partial_model(CarsBase) # this will create a model that has all the fields of CarsBase but all of them are optional
+
+
+class CarMediaBase(BaseModel):
+    media_url: str
+    media_type: MediaType = MediaType.IMAGE
+
+
+class CarMediaCreate(CarMediaBase):
+    car_id: UUID
+
+
+class CarMediaResponse(CarMediaBase):
+    id: UUID
+    car_id: UUID
+    car_name: str | None = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)

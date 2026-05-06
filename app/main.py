@@ -23,6 +23,7 @@ import sqlalchemy
 from app.routers import users, cars
 from app.routers import auth
 from app.routers import ratings
+from app.routers import media
 from sqlalchemy import select
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -83,6 +84,7 @@ app.include_router(users.router) # include the users router
 app.include_router(cars.router) # include the cars router
 app.include_router(auth.router) # include the auth router
 app.include_router(ratings.router) # include the ratings router
+app.include_router(media.router) # include the media router
 
 
 

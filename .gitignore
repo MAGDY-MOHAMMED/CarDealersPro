@@ -50,3 +50,6 @@ htmlcov/
 # Temporary files
 *.tmp
 *.bak
+
+# Storage uploads (images and videos)
+storage/uploads/
