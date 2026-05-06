@@ -3,15 +3,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
 from pathlib import Path
-import shutil
 import os
+import uuid
 from typing import List
 from app.database import get_db
 from app.models import Car, CarMedia, MediaType
 from app.schemas import CarMediaCreate, CarMediaResponse
+from app.core.security import get_auth_user
 from core.logging_config import logger
 from core.request_id import get_request_id
-from core.oauth2 import get_current_user
 
 router = APIRouter(
     prefix="/media",
@@ -56,7 +56,6 @@ def get_storage_directory(media_type: MediaType) -> Path:
 def generate_unique_filename(original_filename: str) -> str:
     """Generate a unique filename to avoid conflicts"""
     ext = Path(original_filename).suffix # suffix means extension means the file extension
-    import uuid
     unique_id = str(uuid.uuid4())
     return f"{unique_id}{ext}" # return the unique filename with the extension
 
@@ -66,7 +65,7 @@ async def upload_car_media(
     car_id: UUID,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(get_auth_user)
 ):
     """
     Upload media (image or video) for a specific car.
@@ -149,7 +148,7 @@ async def get_car_media(
     car_id: UUID,
     media_type: MediaType = None,
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(get_auth_user)
 ):
     """
     Get all media for a specific car.
@@ -190,7 +189,7 @@ async def get_car_media(
 async def delete_media(
     media_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(get_auth_user)
 ):
     """
     Delete a media file and its database record.

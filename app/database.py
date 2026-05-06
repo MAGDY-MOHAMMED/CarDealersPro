@@ -25,7 +25,7 @@ else:
 
 engine = create_async_engine(SQL_ALCHEMY_URL, pool_size=10, max_overflow=20) # pool_size is the number of connections to keep in the pool, max_overflow is the number of connections to create beyond the pool_size
 # this event is used to add request id to the sql queries for better debugging and tracing
-@event.listens_for(engine.sync_engine, "before_cursor_execute") # pragma: no cover - database event
+@event.listens_for(engine.sync_engine, "before_cursor_execute") # pragma: no cover - database event , event listener means that this function will be called before every sql query
 def add_request_id_to_logs(conn, cursor, statement, parameters, context, executemany):
     request_id= get_request_id()
     if request_id :
