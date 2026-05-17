@@ -88,7 +88,6 @@ pandas==2.3.3
 passlib==1.7.4
 pathspec==1.0.4
 pexpect==4.9.0
-pillow==12.1.1
 posthog==7.8.6
 prompt_toolkit==3.0.52
 propcache==0.4.1
