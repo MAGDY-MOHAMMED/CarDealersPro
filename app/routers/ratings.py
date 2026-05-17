@@ -9,7 +9,7 @@ from app.core.request_id import get_request_id
 from app.core.logging_config import logger
 from app.models import Car, CarRating
 from app.schemas import TokenData, RatingBase
-from app.core.auth import UserRole
+from app.models import UserRole
 from app.core.exceptions import ConflictException, ForbiddenException, NotFoundException, InternalServerException
 
 
