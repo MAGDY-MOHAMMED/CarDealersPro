@@ -393,7 +393,7 @@ async def get_schedule_summary(
         raise
 
 
-@router.post("/applications/{application_id}/schedule/payment", response_model=Dict[Str,Any])
+@router.post("/applications/{application_id}/schedule/payment", response_model=Dict[str,Any])
 async def record_schedule_payment(
     application_id: UUID,
     amount: float,
