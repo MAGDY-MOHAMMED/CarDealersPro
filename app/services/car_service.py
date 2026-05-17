@@ -607,12 +607,13 @@ async def get_unpaid_installments_ordered (
     db : AsyncSession,
     application_id : UUID ) -> List[RepaymentSchedule]:
         """Get all unpaid installments ordered by due date (oldest first)."""
-    result = await db.execute(select(RepaymentSchedule).where(
-        RepaymentSchedule.application_id == application_id,
-        RepaymentSchedule.is_paid == False
-    ).order_by(RepaymentSchedule.due_date) # Due date is already a datetime object
-    
-    return result.scalars().all()
+        result = await db.execute(
+            select(RepaymentSchedule).where(
+                RepaymentSchedule.application_id == application_id,
+                RepaymentSchedule.is_paid == False
+            ).order_by(RepaymentSchedule.due_date) # Due date is already a datetime object
+        )
+        return result.scalars().all()
 
 async def record_waterfall_payment(
     db: AsyncSession,
