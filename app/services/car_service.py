@@ -622,14 +622,13 @@ async def record_waterfall_payment(
     grace_period_days: int = 5,
     payment_date: Optional[datetime] = None,
 ) -> Dict[str, Any]:
-     
-        """
-        Record a payment using waterfall method:
-        1. Penalties (overdue fees) – if any
-        2. Interest overdue
-        3. Principal (starting from oldest unpaid installment)
-        4. Partial payment remains as unpaid (marked as overdue)
-        """
+    """
+    Record a payment using waterfall method:
+    1. Penalties (overdue fees) – if any
+    2. Interest overdue
+    3. Principal (starting from oldest unpaid installment)
+    4. Partial payment remains as unpaid (marked as overdue)
+    """
     payment_date = payment_date or datetime.now()
     schedules = await get_unpaid_installments_ordered(db,application_id)
     if not schedules :
@@ -656,9 +655,9 @@ async def record_waterfall_payment(
         else :
             schedule.paid_amount = (schedule.paid_amount or 0 ) + remaining
             schedule.is_paid = False
-            schedule.paid_date = none # because it is noot fully paid
+            schedule.paid_date = None # because it is noot fully paid
             remaining = 0
-            # Optionally mark as partially paid (you can add a column if needed) so ? 
+            # Optionally mark as partially paid (you can add a column if needed) so ?
             break
     await db.flush()
     #if all paid :
@@ -675,7 +674,7 @@ async def record_waterfall_payment(
         "amount_recieved": amount_paid, #total amount recieved
         "amount_applied": amount_paid - remaining, #amount applied to installments
         "remaining_unpaid": remaining, #remaining unpaid amount
-        "installments_updated" : len ([s for s in schedules if s.is_paid or s.paid_amount > 0]) # why [] ? 
+        "installments_updated" : len ([s for s in schedules if s.is_paid or s.paid_amount > 0]) # why [] ?
     }
 
 
