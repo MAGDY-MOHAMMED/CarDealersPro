@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
-from typing import List, Optional , Dict
+from typing import List, Optional , Dict , Any
 from app.database import get_write_db, get_read_db
 from app.schemas import (
     LoanApplicationCreate,
@@ -393,7 +393,7 @@ async def get_schedule_summary(
         raise
 
 
-@router.post("/applications/{application_id}/schedule/payment", response_model=Dict[str,Any])
+@router.post("/applications/{application_id}/schedule/payment", response_model=Dict[str, Any])
 async def record_schedule_payment(
     application_id: UUID,
     amount: float,
