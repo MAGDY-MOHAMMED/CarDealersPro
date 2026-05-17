@@ -5,40 +5,32 @@ services:
   # FastAPI: الـ API
   # ============================================================
   api:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     container_name: cardealers-api
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     env_file:
       - .env
-    depends_on:
-      - db
+    environment:
+      - WEB_CONCURRENCY=${WEB_CONCURRENCY:-4}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    restart: always
     networks:
       - main-net
-    volumes: # volumes here means that the container will have access to the storage-uploads volume
-      - storage-uploads:/app/storage/uploads
-
-  # ============================================================
-  # PostgreSQL: قاعدة البيانات
-  # ============================================================
-  db:
-    image: postgres:15
-    container_name: postgres-db
-    env_file:
-      - .env
-    ports:
-      - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-    networks:
-      - main-net
+      - storage-uploads:/app/storage/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   main-net:
     driver: bridge
 
 volumes:
-  postgres-data:
-    driver: local
   storage-uploads: # storage-uploads is a volume that will be used to store uploaded files
     driver: local

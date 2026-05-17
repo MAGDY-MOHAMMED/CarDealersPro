@@ -1,13 +1,13 @@
 import logging
 import sys
-from core.request_id import get_request_id
+from app.core.request_id import get_request_id
 
 
 class RequestIDFormatter(logging.Formatter): # Formatter that adds request ID to log records
     def format(self, record):
         request_id = get_request_id() or "N/A" # Get the request ID from the request context or use "N/A" if not available
         if not hasattr(record, 'request_id'): # Check if the record already has a request ID
-            setattr(record, 'request_id', request_id) # Use setattr to add the attribute
+            record.request_id = request_id
         return super().format(record) # Call the parent class's format method to format the log record by settings
 
 

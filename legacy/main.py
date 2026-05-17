@@ -46,7 +46,7 @@ def run_system_test() :
 
         print("\n[Step 2] Processing Bank Disbursement...")
         loan_app.status = LoanStatus.APPROVED 
-        finance.complete_finance_sale(loan_app.uid, ref="BANK_REF_55", inventory_manager=inventory) #
+        finance.complete_finance_sale(loan_app.uid, bank_ref="BANK_REF_55", inventory_manager=inventory) #
     except Exception as e:
         print(f"❌ Finance Error: {e}")
     #cash B2B

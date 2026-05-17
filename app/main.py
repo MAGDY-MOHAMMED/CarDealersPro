@@ -1,31 +1,39 @@
 import os
-import uvicorn
 from typing import Final
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, ConfigDict
-import uuid
 import time
-from uuid import UUID
-from http import HTTPStatus
-from app.database import get_db, engine, Base
+from app.database import close_all_engines
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from core.request_id import set_request_id, generate_request_id, get_request_id
-from core.logging_config import logger
-from app.models import Car, User
-from app.schemas import CarUpdate, CarsBase, CarResponse, UserCreate, UserResponse
-from app.utils import get_password_hash, verify_password
-from sqlalchemy.ext.asyncio import AsyncSession
-from core.request_id import ensure_request_id, request_id_var
-import sqlalchemy
+from app.core.request_id import set_request_id, generate_request_id, get_request_id
+from app.core.logging_config import logger
 from app.routers import users, cars
 from app.routers import auth
 from app.routers import ratings
 from app.routers import media
+from app.routers import finance
 from sqlalchemy import select
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.exceptions import AppException
+from dotenv import load_dotenv
+import uvloop
+from app.routers import ai
+
+# Install uvloop for better performance (libuv-based event loop)
+# Reason: uvloop is faster than the default asyncio event loop
+# It uses libuv (the same library used by Node.js) for better performance
+try:
+    uvloop.install()
+    logger.info("uvloop installed successfully - using libuv-based event loop", extra={"request_id": "N/A"})
+except ImportError:
+    logger.warning("uvloop not installed - falling back to default asyncio event loop", extra={"request_id": "N/A"})
+except Exception as e: #
+    logger.error(f"Failed to install uvloop: {e}", extra={"request_id": "N/A"})
+
+# Load environment variables
+load_dotenv()
 
 
 # Standardized Constants (using Final to prevent modification)
@@ -37,7 +45,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next): # override the dispatch method to add request ID to each request 
         request_id = generate_request_id()
         set_request_id(request_id)
-        start_time = time.time()
+        start_time = time.perf_counter() # High-resolution timer for MAMAA performance standards
         logger.info(f"Request started", extra={
             "method": request.method,
             "path": request.url.path, # get the path of the request
@@ -49,11 +57,12 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
             response = await call_next(request) # call the next middleware or route handler 
             response.headers["X-Request-ID"] = request_id
             return response
-        except Exception as e:
-            logger.exception("Request failed", extra={"error" : str(e), "duration" : time.time() - start_time}) # log the request status
+        except Exception as e: # catch any exception
+            # log the exception
+            logger.exception("Request failed", extra={"error" : str(e), "duration" : time.perf_counter() - start_time}) # log the request status
             raise
         finally :
-            duration = (time.time() - start_time) * 1000 # convert to milliseconds
+            duration = (time.perf_counter() - start_time) * 1000 # convert to milliseconds
             # prepare log parameters
             log_params = {
                 "duration_ms" : round(duration, 2), # round to 2 decimal places
@@ -67,35 +76,69 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
 app = FastAPI(title=APP_TITLE, version=APP_VERSION) # create the FastAPI app
 
-origins = [
-    "*" # allows all origins
-]
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": time.time()}
+
+# CORS Configuration - Read from environment variables for flexibility
+# Format: CORS_ORIGINS=http://localhost:3000,http://localhost:8080,https://cardealerspro.com
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
+origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()] if cors_origins_env else []
+
+# Fallback to default origins if not set (for backward compatibility)
+if not origins:
+    origins = [
+        "http://localhost:3000",  # Frontend dev server
+        "http://localhost:8080",  # Alternative dev server
+        "https://cardealerspro.com",  # Production frontend
+        "https://www.cardealerspro.com",  # Production frontend with www
+    ]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID"],  # Expose request ID to frontend
 )
 
 app.add_middleware(RequestIDMiddleware) # add request ID middleware to the app
+
+# Register shutdown event handler to close database engines gracefully
+# Reason: when the API shuts down, we close all database connections cleanly
+# and ensure no pending transactions are left open in the database
+@app.on_event("shutdown")
+async def shutdown_event():
+    """
+    Shutdown event handler to close all database engines
+    """
+    # Log that we're starting the shutdown process
+    logger.info("Shutting down application - closing database engines", extra={"request_id": "N/A"})
+
+    # Call close_all_engines() from database.py to close all engines
+    # Reason: close_all_engines() closes primary_engine, write_engine, read_engine
+    # and returns all connections to the pool and cleans up pending transactions
+    await close_all_engines()
+
+    # Log that shutdown process completed successfully
+    logger.info("Application shutdown completed successfully", extra={"request_id": "N/A"})
 
 app.include_router(users.router) # include the users router
 app.include_router(cars.router) # include the cars router
 app.include_router(auth.router) # include the auth router
 app.include_router(ratings.router) # include the ratings router
 app.include_router(media.router) # include the media router
+app.include_router(finance.router) # include the finance router
+app.include_router(ai.router) # include the ai router
 
 
 
 
-@app.get("/") # root endpoint
-async def root ():
+
+@app.get("/")
+async def root():
     return {"status": "Online", "engine": "CarDealers Pro API !!!!! "}
-
-@app.get("/health") # health check endpoint for cloud/load balancer
-async def health():
-    return {"status": "ok"}
 
 
 
@@ -106,12 +149,13 @@ async def health():
 
 # handle http exceptions
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request:Request, exc:StarletteHTTPException): # log the exception 
+async def http_exception_handler(request:Request, exc:StarletteHTTPException): # log the exception
     return JSONResponse(
         status_code=exc.status_code,
         content={
-            "detail": exc.detail, # get the error message
-            "request_id": get_request_id() # get the request id from the middleware
+            "code": "HTTP_ERROR",
+            "message": exc.detail,
+            "request_id": get_request_id()
         }
     )
 
@@ -121,37 +165,33 @@ async def Validation_exception_handler (request : Request , exc : RequestValidat
     return JSONResponse(
         status_code = 422, # unprocessable entity
         content = {
-            "detail" : exc.errors(),  # for all missing things not one 
-            "body" : str(exc.body), # for the body of the request
+            "code": "VALIDATION_ERROR",
+            "message": "Validation failed",
+            "details": exc.errors(),
+            "body": str(exc.body),
             "request_id" : get_request_id(),
         },
     )
 
-# handle unexpected exceptions
+# handle custom AppException
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+    logger.error(f"Application error: {exc.code}", extra={"request_id": get_request_id(), "code": exc.code})
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.to_response().model_dump()
+    )
+
+# Handle unexpected exceptions
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     logger.exception("Unexpected error occurred", extra={"request_id": get_request_id()})
     return JSONResponse(
         status_code=500,
         content={
-            "detail": "Internal server error",
+            "code": "INTERNAL_ERROR",
+            "message": "Internal server error",
             "request_id": get_request_id(),
         }
-    )
-
-
-# Self-contained uvicorn for cloud deployment (Hugging Face, AWS, Render)
-if __name__ == "__main__":
-    # Get port from environment variable (important for cloud platforms)
-    # Hugging Face uses 7860, Render uses 8000, AWS can use any port
-    port = int(os.environ.get("PORT", 7860))
-
-    # Run the server with production settings
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=port,
-        reload=False,  # Always False in production
-        workers=1      # Free tiers provide 1 core, so don't use more
     )
 

@@ -53,3 +53,59 @@ htmlcov/
 
 # Storage uploads (images and videos)
 storage/uploads/
+
+# Node / Frontend (if applicable)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+.next/
+.nuxt/
+.vuepress/dist/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Backup and Archive
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# Large files (use git lfs for these)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.iso
+*.dmg
+
+# Session and Cache
+*.session
+*.cache
+.cache/
+
+# Screenshots and Downloads
+screenshots/
+downloads/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.ico
+*.heic
+*.heif
+
+# Repomix output
+repomix-output/
+repomix-summary/
+
+# AI Models
+ai_models/

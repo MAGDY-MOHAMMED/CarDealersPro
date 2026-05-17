@@ -3,7 +3,7 @@ Utility functions and helpers
 """
 
 import bcrypt
-from core.logging_config import logger
+from app.core.logging_config import logger
 
 
 def get_password_hash(password: str) -> str:

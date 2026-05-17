@@ -1,35 +1,53 @@
-# Use Python 3.11 slim image
+# Stage 1: Build stage
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# Stage 2: Runtime stage
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
+
+# Copy only the installed packages from builder
+COPY --from=builder /install /usr/local
+
+# Install runtime system dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    libmagic1 \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements file
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Copy application code
 COPY . .
 
-# Create storage directories with write permissions
+# Create storage directories
 RUN mkdir -p /app/storage/uploads/images /app/storage/uploads/videos && \
     chmod -R 755 /app/storage
 
-# Expose port (Hugging Face uses 7860, can be overridden by PORT env var)
-EXPOSE 7860
+# Expose port
+EXPOSE 8000
 
-# Run the application using uvicorn (standard FastAPI practice)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Healthcheck to ensure the container is healthy
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Start using Gunicorn with our custom config
+CMD ["gunicorn", "-c", "gunicorn_conf.py", "app.main:app"]

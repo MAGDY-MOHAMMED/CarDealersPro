@@ -1,14 +1,16 @@
-from jose import jwt
-from core.logging_config import logger
+from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
-from app.core.config import settings 
+from app.core.logging_config import logger
+from app.core.config import settings
+from app.core.request_id import get_request_id
+from app.core.exceptions import UnauthorizedException
 from app.schemas import TokenData
-from fastapi import HTTPException, status, Depends
+from fastapi import Depends
 from pydantic import ValidationError
 from uuid import UUID
-from core.request_id import get_request_id
 from fastapi.security import OAuth2PasswordBearer
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login") # the url to get the token 
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 
@@ -27,27 +29,22 @@ async def Create_Access_Token(data: dict) -> str:
     return encoded_jwt # return the token
 
 
-async def validate_token_payload (token: str) -> TokenData: # how ? by using the public key to decode the token
-    # Define the exception to raise if credentials are invalid, credentials or the token is not valid
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,# 401 means unauthorized
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+async def validate_token_payload(token: str) -> TokenData:
+    credentials_exception = UnauthorizedException("Could not validate credentials")
     try:
         payload = jwt.decode(
             token, # the token to decode
             settings.public_key, # the public key
             algorithms=[settings.ALGORITHM] # the algorithm to use , jwt.decode expects a list of algorithms so [settings.ALGORITHM]
         )
-        user_id = payload.get("sub") # get the user id from the payload
-        role = payload.get("role") # get the user role from the payload
-        if user_id is None:
-            logger.error("User ID not found in token payload", extra={"request_id": get_request_id()})
+        user_id = payload.get("sub")
+        role = payload.get("role")
+        if user_id is None or role is None:
+            logger.error("Token payload is missing required claims", extra={"request_id": get_request_id()})
             raise credentials_exception
-        return TokenData(user_id=user_id, role=role) # return the token data object with the user id and role
-    except (jwt.JWTError, ValidationError): # this is for JWT errors or validation errors
-        logger.warning("JWT Error occurred while verifying access token", extra={"request_id": get_request_id()})
+        return TokenData(user_id=user_id, role=role)
+    except (JWTError, ValidationError):
+        logger.warning("JWT validation failed", extra={"request_id": get_request_id()})
         raise credentials_exception
     except Exception as e: # this is for any other unexpected errors
         logger.error(f"An unexpected error occurred while verifying access token: {e}", extra={"request_id": get_request_id()})

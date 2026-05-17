@@ -1,3 +1,7 @@
+aiofiles==24.1.0
+python-magic==0.4.27
+Pillow==11.1.0
+ffmpeg-python==0.2.0
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.3
 aiosignal==1.4.0
@@ -31,6 +35,7 @@ distro==1.9.0
 dnspython==2.8.0
 ecdsa==0.19.1
 email-validator==2.3.0
+gunicorn==23.0.0
 fastapi==0.128.8
 fastapi-cli==0.0.24
 fastapi-cloud-cli==0.14.1
@@ -157,6 +162,7 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.3
 ujson==5.11.0
+uvloop==0.21.0
 urllib3==2.6.3
 uvicorn==0.40.0
 watchdog==6.0.0

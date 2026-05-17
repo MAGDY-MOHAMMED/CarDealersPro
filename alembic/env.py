@@ -1,15 +1,17 @@
 from logging.config import fileConfig
+from pathlib import Path
 from sqlalchemy import engine_from_config, pool, create_engine
 from alembic import context
 import os
 from dotenv import load_dotenv
 
 # 1. استيراد الـ Base والموديلات (تأكد من استيراد الكل عشان الـ Constraints تظهر)
-from app.database import Base 
-from app.models import User, Car, CarRating, UserRating
+from app.database import Base
+from app.models import User, Car, CarRating, UserRating, CarMedia, LoanApplication, LoanDisbursement, LoanRepayment, Transaction, RepaymentSchedule
 
-# 2. تحميل ملف الـ .env
-load_dotenv()
+# 2. تحميل ملف الـ .env من مسار ثابت بالنسبة لجذر المشروع
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(PROJECT_ROOT / ".env")
 
 # 3. Try to get DATABASE_URL from environment (Render provides this)
 DATABASE_URL = os.getenv("DATABASE_URL")

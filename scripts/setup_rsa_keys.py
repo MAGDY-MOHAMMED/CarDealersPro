@@ -5,7 +5,7 @@ root_path = Path(__file__).parent.parent
 sys.path.append(str(root_path))
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
-from core.logging_config import logger
+from app.core.logging_config import logger
 
 
 
