@@ -20,7 +20,7 @@ errorlog = "-" # means stderr
 access_log_format = '%(t)s | %(h)s | %(r)s | %(s)s | %(b)s | %(D)sμs' # %(D)sμs means microseconds
 
 #server mechanics
-daemon = false # means don't run in background
+daemon = False # means don't run in background
 pidfile = None # means don't write pid file
 umask = 0 # means don't change file permissions
 user = None # means don't change user
