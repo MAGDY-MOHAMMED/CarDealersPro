@@ -34,6 +34,7 @@ RUN if [ "$ENABLE_AI" = "true" ]; then \
     else \
     echo "AI dependencies skipped (ENABLE_AI=false)"; \
     fi
+ENV PORT=7860
 
 # Copy application code
 COPY . .
@@ -43,11 +44,11 @@ RUN mkdir -p /app/storage/uploads/images /app/storage/uploads/videos && \
     chmod -R 755 /app/storage
 
 # Expose port
-EXPOSE 8000
+EXPOSE 7860
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:7860/health || exit 1
 
 # Start using Gunicorn with our custom config
 CMD ["gunicorn", "-c", "gunicorn_conf.py", "app.main:app"]

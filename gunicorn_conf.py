@@ -2,8 +2,9 @@ import os
 
 from sqlalchemy import false 
 
+port = os.getenv("PORT", "7860") # for hugging face
 # this file for gunicorn configuration
-bind = "0.0.0.0:8000" # TODO: Change this to the appropriate port
+bind = f"0.0.0.0:{port}"
 backlog = 2048 #backlog means the maximum number of pending connections to  server?
 
 #worker processes

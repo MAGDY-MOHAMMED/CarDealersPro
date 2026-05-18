@@ -12,10 +12,11 @@ services:
         - ENABLE_AI=${ENABLE_AI:-false}
     container_name: cardealers-api
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "${API_PORT:-7860}:7860"
     env_file:
       - .env
     environment:
+      - PORT=${PORT:-7860}
       - WEB_CONCURRENCY=${WEB_CONCURRENCY:-4}
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - ENABLE_AI=${ENABLE_AI:-false}
@@ -25,7 +26,7 @@ services:
     volumes:
       - storage-uploads:/app/storage/uploads
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
       interval: 30s
       timeout: 10s
       retries: 3
