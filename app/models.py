@@ -193,6 +193,12 @@ class Car (Base) :
         UUID(as_uuid=True),
         nullable=True
     )
+    external_url = Column(
+        String,
+        unique=True,
+        nullable=True
+    )
+
 
     # Indexing Strategy (MAMAA Grade)
     __table_args__ = (
@@ -666,7 +672,7 @@ class CarFeatures(Base):
     __tablename__ = "car_features"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
     car_id = Column(UUID(as_uuid=True), ForeignKey("cars.id", ondelete="CASCADE"), nullable=False, unique=True)
-    feature_vector = Column(ARRAY(Float), nullable=True)
-    predicted_price = Column(Float, nullable=True)
-    damage_score = Column(Float, nullable=True)
-    last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    feature_vector = Column(ARRAY(Float), nullable=True) # for similarity search
+    predicted_price = Column(Float, nullable=True) # for price prediction
+    damage_score = Column(Float, nullable=True) # for damage detection
+    last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now()) # for tracking updates

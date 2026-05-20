@@ -2,19 +2,25 @@ import asyncio
 import os
 import httpx
 from bs4 import BeautifulSoup
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession 
 from sqlalchemy import select
 from app.models import Car
 from app.core.config import settings
 import re
+import sys
+import logging
+from typing import List, Dict, Any
 
-
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+logger = logging.getLogger("Scraper")
 BASE_URL = "https://www.olx.com.eg/vehicles/cars-for-sale/"
 HEADERS = {"User-Agent": "CarDealersPro/1.0 (research bot; contact@cardealerspro.com)"}
 
 
-
-def _get_async_db_url():
+def get_db_url() -> str:
     db_url = os.getenv("DATABASE_URL")
     if db_url:
         url = db_url.replace("postgresql://", "postgresql+asyncpg://")
@@ -27,37 +33,56 @@ def _get_async_db_url():
     )
 
 
-engine = create_async_engine(_get_async_db_url(), echo=False) #echo=False means no sql queries will be printed to the console
 #fetch the html content of a page
-async def fetch_page(client, url, retries=3) -> str:
-    for _ in range(retries):
+async def fetch_page(client :httpx.AsyncClient, url : str, retries : int =3) -> str | None :
+    for _ in range(1, retries + 1):
         try:
-            response = await client.get(url)
+            response = await client.get(url,timeout= 30 , follow_redirects=True) #follow redirects to handle redirects
             if response.status_code == 200:
+                logging.info(f"Fetched {url}")
                 return response.text #return the html content
         except Exception:
             await asyncio.sleep(2)
+            logger.warning(f"Failed to fetch {url}")
     return None
+
+
+
 #parse the html content and extract car data
-async def parse_listing(html: str) -> dict:
+def parse_listing(html: str) -> List[Dict[str, Any]]:
     soup = BeautifulSoup(html, "html.parser")
     cars = []
     #select all car listings
     for ad in soup.select('.ads__item'):#select all car listings , ad means advertisement
         try:
             #extract car title
-            title = ad.select_one('.ads__item__title').text.strip() #
+            title_elem = ad.select_one('.ads__item__title')
+            if not title_elem:
+                continue
+            title = title_elem.text.strip() #get the title of the car
             #extract car price
-            price = re.sub(r'[^\d.]', '', ad.select_one('.ads__item__price').text) #
-            #extract car details
-            details = ad.select_one('.ads__item__details').text #
+            price_elem = ad.select_one('.ads__item__price') #select the price element
+            price_str = price_elem.text if price_elem else "0"
+            price = float(re.sub(r'[^\d.]', '', price_str)) if price_str else None
+
+            link_elem = ad.select_one('a')
+            url = link_elem.get('href') if link_elem else None
+            if not url:
+                continue
+            url = url.split('?')[0]  #remove query parameters
+            #
+            details_elem = ad.select_one('.ads__item__details') #select the details element
+            
+            details = details_elem.text if details_elem else ""
             #extract car year
             year_match = re.search(r'\b(19|20)\d{2}\b', details) #
+            year = int(year_match.group()) if year_match else None #
+
             car = {
                 'title': title,
-                'price': float(price) if price else None,
-                'year': int(year_match.group()) if year_match else None,
-                'url': ad.select_one('a')['href']
+                'price': float(price) if price else None, #
+                'year': year,
+                'url': url #get the url of the car
             }
             cars.append(car)
         except Exception:
@@ -67,17 +92,19 @@ async def parse_listing(html: str) -> dict:
 
 
 # for saving the data to the database
-async def save_to_db(listings):
+async def save_to_db(engine ,listings :List[Dict[str, Any]]) -> int:
+    if not listings:
+        return 0
+    added = 0
     async with AsyncSession(engine) as session:
         for item in listings:
-            result = await session.execute(
-                select(Car).where(Car.external_url == item['url']) # Check if the car already exists
+            existing = await session.execute(
+                select(Car).where(Car.external_url == item['url'])
             )
-            if result.scalar_one_or_none():
-                continue
-            # Extract brand and model from title
+            if existing.scalar_one_or_none():
+                continue  # مكرر
             title_parts = item['title'].split()
-            brand = title_parts[0] if title_parts else "Unknown"
+            brand = title_parts[0] if title_parts else "Unknown" #
             model = " ".join(title_parts[1:3]) if len(title_parts) > 1 else "Unknown"
             # Create a new car
             # We assume brand/model are extracted from the title (e.g., "Toyota Corolla 2020")
@@ -99,27 +126,42 @@ async def save_to_db(listings):
                 published=False   # Not published because it's raw data
             )
             session.add(car)
+            added += 1
         await session.commit()
+    return added
 
 
 
 async def scrape_all():
+    logger.info("Starting scraper...")
+    engine = create_async_engine(get_db_url(), echo=True)
     async with httpx.AsyncClient(headers=HEADERS) as client:
          page = 1
          while True:
             url = f"{BASE_URL}?page={page}"
+            logger.info(f"Scraping page {page}: {url}")
             html = await fetch_page(client, url)
             if not html:
+                logger.info("No more pages to scrape.")
                 break
-            listings = await parse_listing(html) #parse the html content
+            listings = parse_listing(html) #parse the html content
             if not listings:
+                logger.info("No more listings to scrape.")
                 break
-            await save_to_db(listings)
+            added = await save_to_db(engine, listings)
+            logger.info(f"Added {added} listings to database.")
             page += 1 #move to the next page
-            await asyncio.sleep(2)  # for rate limiting to respect the server
-
+            await asyncio.sleep(3)  # for rate limiting to respect the server
+    await engine.dispose()
+    logger.info("Scraping completed.")
 
 
 if __name__ == "__main__":
-    asyncio.run(scrape_all())
+    try:
+        asyncio.run(scrape_all())
+    except KeyboardInterrupt: # Handle Ctrl+C
+        logger.info("Scraper stopped by user.")
+    except Exception as e: # Handle any other exceptions
+        logger.exception(f"Fatal error: {e}")
+        sys.exit(1) # Exit with error code
 

@@ -132,6 +132,12 @@ async def upload_car_media(
 
     # Validate file size
     file_content = await file.read() # read the file content
+    async with aiofiles.open("test.txt", "wb") as buffer: #
+        await buffer.write(file_content) 
+    chunk_size = 1024 * 1024 # 1MB # chunk size
+    async with aiofiles.open("test2.txt", "wb") as buffer:
+        while chunk := await file.read(chunk_size):
+            await buffer.write(chunk)
     if len(file_content) > MAX_FILE_SIZE:
         logger.warning(f"File too large", extra={"size": len(file_content), "request_id": request_id})
         raise BadRequestException(

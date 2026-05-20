@@ -18,8 +18,8 @@ from sqlalchemy import select
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.exceptions import AppException
 from dotenv import load_dotenv
-import uvloop
 from app.routers import ai
+import sys
 
 # Install uvloop for better performance (libuv-based event loop)
 # Reason: uvloop is faster than the default asyncio event loop
@@ -75,6 +75,14 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
 
 app = FastAPI(title=APP_TITLE, version=APP_VERSION) # create the FastAPI app
+
+if sys.platform != "win32":
+    try :
+        import uvloop
+        uvloop.asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    except ImportError:
+        logger.warning("uvloop not available, using default event loop")
+
 
 @app.get("/health")
 async def health_check():
