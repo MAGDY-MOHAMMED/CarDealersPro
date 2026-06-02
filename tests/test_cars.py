@@ -47,7 +47,6 @@ async def test_update_car(client: AsyncClient, dealer_headers, car_id):
 @pytest.mark.asyncio
 async def test_delete_car(client: AsyncClient, dealer_headers, dealer_user):
     """حذف سيارة (Soft Delete)."""
-    # ننشئ سيارة مؤقتة
     car_data = {
         "brand": "DeleteMe",
         "model": "Test",
@@ -55,13 +54,13 @@ async def test_delete_car(client: AsyncClient, dealer_headers, dealer_user):
         "price_consumer": 10000
     }
     res = await client.post("/cars/", json=car_data, headers=dealer_headers)
-    assert res.status_code == 201 #201 means created
+    assert res.status_code == 201
     car_id = res.json()["id"]
 
-    # حذف
+    # الحذف الناعم يجب أن يرجع 204 (نجاح)
     res = await client.delete(f"/cars/{car_id}", headers=dealer_headers)
-    assert res.status_code == 404 #404 means not found (soft deleted)
+    assert res.status_code == 204  # كان خطأ 404
 
-    # التأكد إنها مش ظاهرة
+    # الآن العربية مخفية، جلبها بدون توثيق يرجع 401 (أو 404 لو أضفنا توثيق)
     res = await client.get(f"/cars/{car_id}")
-    assert res.status_code == 401 #401 means unauthorized 
+    assert res.status_code == 401  # هذا صحيح

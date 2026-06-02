@@ -53,6 +53,7 @@ htmlcov/
 
 # Storage uploads (images and videos)
 storage/uploads/
+data/optimized/car_features.parquet
 
 # Node / Frontend (if applicable)
 node_modules/

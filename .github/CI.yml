@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: Magdy123456
+          POSTGRES_DB: postgres    # قاعدة افتراضية للاتصال الإداري
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_USERNAME: postgres
+      TEST_DATABASE_PASSWORD: Magdy123456
+      TEST_DATABASE_HOSTNAME: localhost
+      TEST_DATABASE_PORT: 5432
+      TEST_DATABASE_NAME: cardealerspro_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        run: uv pip install --system -r requirements.txt
+
+      - name: Run tests
+        run: pytest -v
