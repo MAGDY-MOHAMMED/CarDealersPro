@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test-and-publish:
+  test-build-deploy:
     runs-on: ubuntu-latest
 
     services:
@@ -62,3 +62,22 @@ jobs:
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Deploy to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: magdy1441   # أو magdy2467 حسب حسابك
+        run: |
+          SPACE_URL="https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro"
+          git clone $SPACE_URL hf-space
+          cp Dockerfile.hf hf-space/Dockerfile
+          cd hf-space
+          git config user.name "GitHub CI"
+          git config user.email "ci@cardealerspro.com"
+          git add Dockerfile
+          if git diff --staged --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Update Docker image reference [skip ci]"
+            git push origin main
+          fi
