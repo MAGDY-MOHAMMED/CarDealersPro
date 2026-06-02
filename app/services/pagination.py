@@ -72,9 +72,9 @@ def calculate_pagination_metadata(
     Returns:
         Tuple of (total_pages, has_next, has_previous)
     """
-    total_pages = (total + page_size - 1) // page_size if total > 0 else 0
-    has_next = page < total_pages
-    has_previous = page > 1
+    total_pages = (total + page_size - 1) // page_size if total > 0 else 0 # means total pages , (total + page_size - 1) // page_size means total pages
+    has_next = page < total_pages # means has next page , page < total_pages means page is less than total pages
+    has_previous = page > 1 # means has previous page , page > 1 means page is greater than 1
     
     return total_pages, has_next, has_previous
 
@@ -100,20 +100,21 @@ async def get_paginated_response(
     Returns:
         PaginatedResponse with items and metadata
     """
-    count_subquery = query.order_by(None).limit(None).offset(None).subquery()
-    total_result = await db.execute(sql_select(func.count()).select_from(count_subquery))
-    total = total_result.scalar_one() or 0
+    count_subquery = query.order_by(None).limit(None).offset(None).subquery() # means order by nothing, limit nothing, offset nothing
+    total_result = await db.execute(sql_select(func.count()).select_from(count_subquery)) # means count the total number of items , func.count() means count , select_from(count_subquery) means select from count subquery
+    total = total_result.scalar_one() or 0 # means total items
 
-    paginated_query, page, page_size = paginate_query(query, page, page_size, max_page_size)
+    paginated_query, page, page_size = paginate_query(query, page, page_size, max_page_size) # means paginate the query
 
     result = await db.execute(paginated_query)
+    # try to get all items, if it fails, get all items, this is for compatibility with different versions of SQLAlchemy,
     try:
-        items = result.scalars().all()
+        items = result.scalars().all() # means get all items
     except Exception:
-        items = result.all()
+        items = result.all() # means get all items
     
-    # Calculate metadata
-    total_pages, has_next, has_previous = calculate_pagination_metadata(total, page, page_size)
+    # Calculate metadata 
+    total_pages, has_next, has_previous = calculate_pagination_metadata(total, page, page_size) # because we need to know if there is next page or previous page
 
     return PaginatedResponse(
         items=items,

@@ -4,15 +4,15 @@ on:
     branches: [main] # الروبوت هيشتغل أول ما ترفع على فرع main
 
   # يسمح لك بتشغيل الروبوت يدوياً من GitHub
-  workflow_dispatch:
-
+  workflow_dispatch: 
+# no matrix , i need to save comp minutes
 jobs:
   sync-to-hub:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # 
           lfs: true
       - name: Push to hub
         env:

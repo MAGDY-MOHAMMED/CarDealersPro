@@ -1,13 +1,26 @@
 from uuid import UUID
-from dns.query import _remaining
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_
 from app.models import Car, CarRating, User, LoanApplication, LoanDisbursement, LoanRepayment, Transaction, LoanStatus, PaymentMethod, RepaymentSchedule
 from app.models import UserRole
+from datetime import timezone
 from app.utils.filter_builder import build_filter_query
+import asyncio
 from app.core.exceptions import NotFoundException, ValidationException
 from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta ,timezone
+
+
+def ensure_utc_datetime (datetime: datetime) -> datetime:
+    """
+    Convert any datetime to a timezone-aware UTC datetime.
+    
+    - If naive (SQLite), assume it's UTC and attach tzinfo.
+    - If aware, convert to UTC.
+    """
+    if datetime.tzinfo is None:
+        return datetime.replace(tzinfo=timezone.utc)
+    return datetime.astimezone(timezone.utc)
 
 async def get_filtered_cars(
     db: AsyncSession,
@@ -54,25 +67,25 @@ async def transfer_car_ownership_atomic(
     new_owner_id: UUID,
 ) -> Car:
     car_result = await db.execute(
-        select(Car).where(Car.id == car_id, Car.is_deleted.is_(False)).with_for_update()
+        select(Car).where(Car.id == car_id, Car.is_deleted.is_(False)).with_for_update() #prevent the race condition
     )
     car = car_result.scalar_one_or_none()
     if not car:
         raise NotFoundException("Car", str(car_id))
     # Check if the new owner exists
     owner_result = await db.execute(
-        select(User).where(or_(User.id == car.owner_id, User.id == new_owner_id)).with_for_update()
+        select(User).where(or_(User.id == car.owner_id, User.id == new_owner_id)).with_for_update() # to prevent the change of the inventory count
     )
-    owners = {user.id: user for user in owner_result.scalars().all()}
+    owners = {user.id: user for user in owner_result.scalars().all()} # create a dictionary of owners
     new_owner = owners.get(new_owner_id)
     if not new_owner:
-        raise NotFoundException("User", str(new_owner_id))
+        raise NotFoundException("User", str(new_owner_id)) # user not found
     # Update inventory count
     old_owner = owners.get(car.owner_id)
-    if old_owner and old_owner.role == UserRole.DEALER and old_owner.inventory_count > 0:
-        old_owner.inventory_count -= 1
+    if old_owner and old_owner.role == UserRole.DEALER and old_owner.inventory_count > 0: # prevent negative inventory count
+        old_owner.inventory_count -= 1 # decrease the inventory count of the old owner
     if new_owner.role == UserRole.DEALER:
-        new_owner.inventory_count += 1
+        new_owner.inventory_count += 1 # increase the inventory count of the new owner
 
     car.owner_id = new_owner_id
     await db.flush() # Commit the transaction to update the inventory count
@@ -86,7 +99,7 @@ class FinanceCalculator:
     def calculate_monthly_payment(principal: float, annual_interest_rate: float, months: int) -> float:
         if months <= 0 or annual_interest_rate <= 0:
             return round(principal / (months or 1), 2)
-        monthly_rate = (annual_interest_rate / 100) / 12
+        monthly_rate = (annual_interest_rate / 100) / 12 #for amortaization
         payment = (principal * monthly_rate) / (1 - (1 + monthly_rate) ** -months)
         return round(payment, 2)
 
@@ -107,7 +120,7 @@ class FinanceCalculator:
         dp_percent = (down_payment / car_price) * 100
         # Reduce interest rate by 1% if down payment > 40%
         if dp_percent > 40:
-            base_rate -= 1.0
+            base_rate -= 1.0 # Incentive for high down payment
         return base_rate
 
 
@@ -147,25 +160,25 @@ async def create_loan_application(
         raise NotFoundException("User", str(bank_id))
 
     # Validate car condition
-    car_condition = car.condition.lower()
+    car_condition = car.condition.lower() # data sanitization
     if car_condition not in ["new", "used"]:
         raise ValidationException("Car condition must be 'new' or 'used'")
 
     # Get bank rates or use defaults
     if car_condition == "new":
-        min_dp_percent = bank.bank_min_dp_new if bank.bank_min_dp_new else 15.0
-        max_months = bank.bank_max_months_new if bank.bank_max_months_new else 60
-        base_interest_rate = bank.bank_rate_new if bank.bank_rate_new else 12.0
+        min_dp_percent = bank.bank_min_dp_new if bank.bank_min_dp_new else 15.0 # minimum down payment percentage
+        max_months = bank.bank_max_months_new if bank.bank_max_months_new else 60 # maximum tenure in months
+        base_interest_rate = bank.bank_rate_new if bank.bank_rate_new else 12.0 # base interest rate
     else:
-        min_dp_percent = bank.bank_min_dp_used if bank.bank_min_dp_used else 20.0
-        max_months = bank.bank_max_months_used if bank.bank_max_months_used else 48
-        base_interest_rate = bank.bank_rate_used if bank.bank_rate_used else 14.0
+        min_dp_percent = bank.bank_min_dp_used if bank.bank_min_dp_used else 20.0 # minimum down payment percentage
+        max_months = bank.bank_max_months_used if bank.bank_max_months_used else 48 # maximum tenure in months
+        base_interest_rate = bank.bank_rate_used if bank.bank_rate_used else 14.0 # base interest rate
 
     # Validate down payment
-    if down_payment < 0 or down_payment >= car.price_consumer:
+    if down_payment < 0 or down_payment >= car.price_consumer: 
         raise ValidationException("Down payment must be non-negative and less than car price")
 
-    required_dp = car.price_consumer * (min_dp_percent / 100)
+    required_dp = car.price_consumer * (min_dp_percent / 100) # required down payment
     if down_payment < required_dp:
         raise ValidationException(
             f"Down payment too low. Bank/System requires {min_dp_percent}% ({required_dp:.2f} EGP) for {car_condition} cars."
@@ -233,7 +246,7 @@ async def get_loan_application(
         raise NotFoundException("LoanApplication", str(application_id))
     return application
 
-
+#helper function in routes
 async def update_loan_application_status(
     db: AsyncSession,
     application_id: UUID,
@@ -247,9 +260,9 @@ async def update_loan_application_status(
     if not application:
         raise NotFoundException("LoanApplication", str(application_id))
 
-    application.status = status
+    application.status = status # ORM record that the status changed dirty state so we can update it later
     if interest_rate is not None:
-        application.interest_rate = interest_rate
+        application.interest_rate = interest_rate # For possible changes , Data Consistency
         # Recalculate monthly installment
         application.monthly_installment = FinanceCalculator.calculate_monthly_payment(
             application.loan_amount, interest_rate, application.tenure_months
@@ -356,7 +369,7 @@ async def get_loan_repayments(
 ) -> List[LoanRepayment]:
     result = await db.execute(
         select(LoanRepayment).where(LoanRepayment.application_id == application_id)
-        .order_by(LoanRepayment.payment_date.desc())
+        .order_by(LoanRepayment.payment_date.desc()) #newest first
     )
     return result.scalars().all()
 
@@ -420,21 +433,21 @@ async def get_user_transactions(
     as_seller: bool = True,
 ) -> List[Transaction]:
     conditions = []
-    if as_buyer:
+    if as_buyer: #if user is buyer
         conditions.append(Transaction.buyer_id == user_id)
-    if as_seller:
+    if as_seller: #if user is seller
         conditions.append(Transaction.seller_id == user_id)
 
     if not conditions:
         return []
 
     result = await db.execute(
-        select(Transaction).where(or_(*conditions))
-        .order_by(Transaction.transaction_date.desc())
+        select(Transaction).where(or_(*conditions)) # (*conditions) means unpacking the list
+        .order_by(Transaction.transaction_date.desc()) #newest first
     )
     return result.scalars().all()
 
-
+# Saga Pattern
 async def complete_finance_sale(
     db: AsyncSession,
     application_id: UUID,
@@ -492,11 +505,11 @@ async def generate_repayment_schedule(
         raise NotFoundException("LoanApplication", str(application_id))
 
     # Calculate amortization schedule
-    monthly_rate = (application.interest_rate / 100) / 12
-    remaining_balance = application.loan_amount
+    monthly_rate = (application.interest_rate / 100) / 12 #convert annual rate to monthly rate
+    remaining_balance = application.loan_amount #initial remaining balance
     schedules = []
 
-    for month in range(1, application.tenure_months + 1):
+    for month in range(1, application.tenure_months + 1): #month 1 to tenure_months
         # Calculate interest for this month
         interest_amount = remaining_balance * monthly_rate
 
@@ -504,15 +517,15 @@ async def generate_repayment_schedule(
         principal_amount = application.monthly_installment - interest_amount
 
         # Update remaining balance
-        remaining_balance -= principal_amount
+        remaining_balance -= principal_amount #subtract principal from remaining balance
 
-        # Handle final payment rounding
+        # Handle final payment rounding , Floating Point Precision means 
         if month == application.tenure_months:
             principal_amount += remaining_balance
-            remaining_balance = 0
+            remaining_balance = 0 #set remaining balance to 0
 
         # Calculate due date (first payment 30 days from approval)
-        due_date = application.applied_at + timedelta(days=30 * month)
+        due_date = application.applied_at + timedelta(days=30 * month) #calculate due date
 
         schedule = RepaymentSchedule(
             application_id=application_id,
@@ -521,7 +534,7 @@ async def generate_repayment_schedule(
             amount=application.monthly_installment,
             principal_amount=round(principal_amount, 2),
             interest_amount=round(interest_amount, 2),
-            remaining_balance=round(max(0, remaining_balance), 2),
+            remaining_balance=round(max(0, remaining_balance), 2), #ensure remaining balance is not negative , max(0, remaining_balance) means if remaining_balance is negative, set it to 0
             is_paid=False
         )
 
@@ -531,7 +544,7 @@ async def generate_repayment_schedule(
     await db.flush()
     return schedules
 
-
+#Get repayment schedule, ordered by installment number
 async def get_repayment_schedule(
     db: AsyncSession,
     application_id: UUID,
@@ -544,6 +557,7 @@ async def get_repayment_schedule(
     return result.scalars().all()
 
 
+#Get repayment schedule summary ,for dashboard
 async def get_repayment_schedule_summary(
     db: AsyncSession,
     application_id: UUID,
@@ -556,10 +570,10 @@ async def get_repayment_schedule_summary(
 
     # Calculate summary
     total_installments = len(schedules)
-    paid_installments = sum(1 for s in schedules if s.is_paid)
+    paid_installments = sum(1 for s in schedules if s.is_paid) #count paid installments
     remaining_installments = total_installments - paid_installments
-    total_amount = sum(s.amount for s in schedules)
-    paid_amount = sum(s.paid_amount or 0 for s in schedules if s.is_paid)
+    total_amount = sum(s.amount for s in schedules) #sum all installments
+    paid_amount = sum(s.paid_amount or 0 for s in schedules if s.is_paid) #sum paid installments , generators so no lists in rams just on the fly   
     remaining_amount = total_amount - paid_amount
 
     # Find next payment
@@ -568,12 +582,12 @@ async def get_repayment_schedule_summary(
     next_payment_amount = next_payment.amount if next_payment else None
 
     # Calculate overdue amount
-    today = datetime.now()
+    today = datetime.now(timezone.utc)
     overdue_amount = sum(
         s.amount for s in schedules
-        if not s.is_paid and s.due_date < today
+        if not s.is_paid and ensure_utc_datetime(s.due_date) < today
     )
-
+    # for capsulate  the data for the router
     return {
         "application_id": application_id,
         "total_installments": total_installments,
@@ -587,7 +601,7 @@ async def get_repayment_schedule_summary(
         "overdue_amount": overdue_amount
     }
 
-
+#
 async def record_payment_against_schedule(
     db: AsyncSession,
     application_id: UUID,
@@ -613,14 +627,15 @@ async def get_unpaid_installments_ordered (
                 RepaymentSchedule.is_paid == False
             ).order_by(RepaymentSchedule.due_date) # Due date is already a datetime object
         )
+        #scalars return json objects not sqlalchemy objects , so we can use them in the router
         return result.scalars().all()
 
 async def record_waterfall_payment(
     db: AsyncSession,
     application_id: UUID,
-    amount_paid: float,
-    grace_period_days: int = 5,
-    payment_date: Optional[datetime] = None,
+    amount_paid: float, 
+    grace_period_days: int = 30,
+    payment_date: Optional[datetime] = None, 
 ) -> Dict[str, Any]:
     """
     Record a payment using waterfall method:
@@ -629,52 +644,55 @@ async def record_waterfall_payment(
     3. Principal (starting from oldest unpaid installment)
     4. Partial payment remains as unpaid (marked as overdue)
     """
-    payment_date = payment_date or datetime.now()
-    schedules = await get_unpaid_installments_ordered(db,application_id)
+    payment_date = ensure_utc_datetime(payment_date or datetime.now(timezone.utc))
+    schedules = await get_unpaid_installments_ordered(db,application_id) #means get all unpaid installments ordered by due date (oldest first)
     if not schedules :
         raise ValidationException("no pending installments found for this application")
     total_ramaining= sum(s.amount - (s.paid_amount or 0) for s in schedules) #means remaining amount to pay
     if amount_paid <= 0:
         raise ValidationException("payment amount must be positive")
     for schedule in schedules :
-        if schedule.due_date < payment_date : #
-            overdue = (payment_date -schedule.due_date).days #number of days overdue
-            schedule.overdue_days = max (0, overdue-grace_period_days ) #means number of days overdue after grace period
+        due_date_utc = ensure_utc_datetime(schedule.due_date)
+        if due_date_utc < payment_date : # if due date is before payment date
+            overdue = (payment_date -due_date_utc).days #number of days overdue
+            schedule.overdue_days = max (0, overdue - grace_period_days ) #means number of days overdue after grace period
         else :
             schedule.overdue_days = 0
     remaining = amount_paid
     for schedule in schedules :
-        if remaining <= 0 :
-            break
-        due_now =schedule.amount - (schedule.paid_amount or 0) #means amount due now
-        if remaining >= due_now :
-            schedule.paid_amount = schedule.amount
+        if remaining <= 0 : # if remaining is less than or equal to 0
+            break # means no more payment to process
+        due_now =round(schedule.amount - (schedule.paid_amount or 0), 2) #means amount due now ,
+        if remaining >= due_now : #if remaining is greater than or equal to due now
+            schedule.paid_amount = schedule.amount #means fully paid
             schedule.is_paid = True
-            schedule.paid_date = payment_date
-            remaining -= due_now
-        else :
+            schedule.paid_date = payment_date #means payment date
+            remaining -= due_now #means remaining amount to pay
+            remaining = round (remaining, 2)
+        else : #if remaining is less than due now
             schedule.paid_amount = (schedule.paid_amount or 0 ) + remaining
             schedule.is_paid = False
             schedule.paid_date = None # because it is noot fully paid
             remaining = 0
             # Optionally mark as partially paid (you can add a column if needed) so ?
             break
-    await db.flush()
+    await db.flush() #means save changes to database
     #if all paid :
-
-    all_paid = all(s.is_paid for s in schedules)
+    for schedule in schedules:
+        await db.refresh(schedule) # to refresh the paid if it disburse a part of it
+    all_paid = all(s.is_paid for s in schedules) # all is short circuting , like next and any
     if all_paid :
         app_result = await db.execute(
             select(LoanApplication).where(LoanApplication.id == application_id)
         )
         app = app_result.scalar_one()
-        app.status = LoanStatus.PAID_OFF
+        app.status = LoanStatus.PAID_OFF #means loan is paid off
     return {
         "application_id": application_id, #id of the loan application
-        "amount_recieved": amount_paid, #total amount recieved
+        "amount_received": amount_paid,
         "amount_applied": amount_paid - remaining, #amount applied to installments
         "remaining_unpaid": remaining, #remaining unpaid amount
-        "installments_updated" : len ([s for s in schedules if s.is_paid or s.paid_amount > 0]) # why [] ?
+        "installments_updated": len([s for s in schedules if s.is_paid or (s.paid_amount or 0) > 0])
     }
 
 

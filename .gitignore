@@ -109,3 +109,20 @@ repomix-summary/
 
 # AI Models
 ai_models/
+
+# ELK Stack
+elk/
+
+# ELK Stack Logs
+elk/logs/
+
+# ELK Stack Data
+elk/data/
+
+# CSV Files
+*.csv
+
+#legacy folder
+legacy/
+#any repomix.xml file
+repomix.xml

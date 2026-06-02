@@ -27,7 +27,8 @@ router = APIRouter(
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_write_db)):
     normalized_email = user.email.lower()
     existing_user = await db.execute(select(User).where(User.email == normalized_email))
-    if existing_user.scalar_one_or_none(): # if the user exists
+    existing = existing_user.scalar_one_or_none()
+    if existing: # if the user exists
         raise ConflictException(
             message="User with this email already exists",
             details={"email": user.email}

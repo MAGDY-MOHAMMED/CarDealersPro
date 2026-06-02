@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 # 1. استيراد الـ Base والموديلات (تأكد من استيراد الكل عشان الـ Constraints تظهر)
 from app.database import Base
-from app.models import User, Car, CarRating, UserRating, CarMedia, LoanApplication, LoanDisbursement, LoanRepayment, Transaction, RepaymentSchedule
+from app.models import CarFeatures, User, Car, CarRating, UserRating, CarMedia, LoanApplication, LoanDisbursement, LoanRepayment, Transaction, RepaymentSchedule
 
 # 2. تحميل ملف الـ .env من مسار ثابت بالنسبة لجذر المشروع
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

@@ -3,6 +3,7 @@ from typing import Final
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 import time
+from starlette.types import Lifespan
 from app.database import close_all_engines
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
@@ -11,6 +12,7 @@ from app.core.request_id import set_request_id, generate_request_id, get_request
 from app.core.logging_config import logger
 from app.routers import users, cars
 from app.routers import auth
+from contextlib import asynccontextmanager
 from app.routers import ratings
 from app.routers import media
 from app.routers import finance
@@ -19,27 +21,46 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.exceptions import AppException
 from dotenv import load_dotenv
 from app.routers import ai
+from starlette.types import Lifespan
 import sys
 
 # Install uvloop for better performance (libuv-based event loop)
 # Reason: uvloop is faster than the default asyncio event loop
 # It uses libuv (the same library used by Node.js) for better performance
-try:
-    uvloop.install()
-    logger.info("uvloop installed successfully - using libuv-based event loop", extra={"request_id": "N/A"})
-except ImportError:
-    logger.warning("uvloop not installed - falling back to default asyncio event loop", extra={"request_id": "N/A"})
-except Exception as e: #
-    logger.error(f"Failed to install uvloop: {e}", extra={"request_id": "N/A"})
 
 # Load environment variables
 load_dotenv()
 
+if sys.platform != "win32":
+    try:
+        import uvloop
+        uvloop.install()
+        logger.info("uvloop installed successfully - using libuv-based event loop", extra={"request_id": "N/A"})
+    except ImportError:
+        logger.warning("uvloop not available, using default event loop", extra={"request_id": "N/A"})
 
 # Standardized Constants (using Final to prevent modification)
 APP_TITLE: Final = "CarDealersPro API"
 APP_VERSION: Final = "1.0.0"
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Shutdown event handler to close all database engines , event handler here is used to close the database engines gracefully
+    """
+    logger.info("Application startup", extra={"request_id": "N/A"})
+    yield
+    # Log that we're starting the shutdown process
+    logger.info("Shutting down application - closing database engines", extra={"request_id": "N/A"})
+
+    # Call close_all_engines() from database.py to close all engines
+    # Reason: close_all_engines() closes primary_engine, write_engine, read_engine
+    # and returns all connections to the pool and cleans up pending transactions
+    await close_all_engines()
+
+    # Log that shutdown process completed successfully
+    logger.info("Application shutdown completed successfully", extra={"request_id": "N/A"})
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next): # override the dispatch method to add request ID to each request 
@@ -74,19 +95,17 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
             logger.info("Request completed", extra=log_params)
 
 
-app = FastAPI(title=APP_TITLE, version=APP_VERSION) # create the FastAPI app
+app = FastAPI(title=APP_TITLE, version=APP_VERSION, lifespan=lifespan) # create the FastAPI app
 
-if sys.platform != "win32":
-    try :
-        import uvloop
-        uvloop.asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    except ImportError:
-        logger.warning("uvloop not available, using default event loop")
+
 
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": time.time()}
+
+
+
 
 # CORS Configuration - Read from environment variables for flexibility
 # Format: CORS_ORIGINS=http://localhost:3000,http://localhost:8080,https://cardealerspro.com
@@ -116,21 +135,7 @@ app.add_middleware(RequestIDMiddleware) # add request ID middleware to the app
 # Register shutdown event handler to close database engines gracefully
 # Reason: when the API shuts down, we close all database connections cleanly
 # and ensure no pending transactions are left open in the database
-@app.on_event("shutdown")
-async def shutdown_event():
-    """
-    Shutdown event handler to close all database engines
-    """
-    # Log that we're starting the shutdown process
-    logger.info("Shutting down application - closing database engines", extra={"request_id": "N/A"})
 
-    # Call close_all_engines() from database.py to close all engines
-    # Reason: close_all_engines() closes primary_engine, write_engine, read_engine
-    # and returns all connections to the pool and cleans up pending transactions
-    await close_all_engines()
-
-    # Log that shutdown process completed successfully
-    logger.info("Application shutdown completed successfully", extra={"request_id": "N/A"})
 
 app.include_router(users.router) # include the users router
 app.include_router(cars.router) # include the cars router

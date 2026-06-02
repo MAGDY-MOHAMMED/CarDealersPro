@@ -1,24 +1,21 @@
 import asyncio
 import os
-import httpx
+import sys
+import logging
+import re
+from typing import List, Dict, Any
+import requests
 from bs4 import BeautifulSoup
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession 
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy import select
 from app.models import Car
 from app.core.config import settings
-import re
-import sys
-import logging
-from typing import List, Dict, Any
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("Scraper")
-BASE_URL = "https://www.olx.com.eg/vehicles/cars-for-sale/"
-HEADERS = {"User-Agent": "CarDealersPro/1.0 (research bot; contact@cardealerspro.com)"}
 
+BASE_URL = "https://www.contactcars.com"
+SEARCH_URL = f"{BASE_URL}/cars/search"
 
 def get_db_url() -> str:
     db_url = os.getenv("DATABASE_URL")
@@ -27,141 +24,164 @@ def get_db_url() -> str:
         if "sslmode=require" not in url:
             url += "?sslmode=require" if "?" not in url else "&sslmode=require"
         return url
-    return (
-        f"postgresql+asyncpg://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}"
-        f"@{settings.DATABASE_HOSTNAME}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}"
-    )
+    return (f"postgresql+asyncpg://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}"
+            f"@{settings.DATABASE_HOSTNAME}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}")
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+}
 
-#fetch the html content of a page
-async def fetch_page(client :httpx.AsyncClient, url : str, retries : int =3) -> str | None :
-    for _ in range(1, retries + 1):
-        try:
-            response = await client.get(url,timeout= 30 , follow_redirects=True) #follow redirects to handle redirects
-            if response.status_code == 200:
-                logging.info(f"Fetched {url}")
-                return response.text #return the html content
-        except Exception:
-            await asyncio.sleep(2)
-            logger.warning(f"Failed to fetch {url}")
-    return None
-
-
-
-#parse the html content and extract car data
-def parse_listing(html: str) -> List[Dict[str, Any]]:
+def extract_cars_from_html(html: str) -> List[Dict[str, Any]]:
+    """يستخرج بيانات السيارات من صفحة البحث في ContactCars"""
     soup = BeautifulSoup(html, "html.parser")
     cars = []
-    #select all car listings
-    for ad in soup.select('.ads__item'):#select all car listings , ad means advertisement
+    for item in soup.select("div.car-list-item"):
         try:
-            #extract car title
-            title_elem = ad.select_one('.ads__item__title')
+            # العنوان والعربية (الماركة والموديل)
+            title_elem = item.select_one("h2.car-title a, .car-model a")
             if not title_elem:
                 continue
-            title = title_elem.text.strip() #get the title of the car
-            #extract car price
-            price_elem = ad.select_one('.ads__item__price') #select the price element
-            price_str = price_elem.text if price_elem else "0"
-            price = float(re.sub(r'[^\d.]', '', price_str)) if price_str else None
+            title = title_elem.get_text(strip=True)
 
-            link_elem = ad.select_one('a')
-            url = link_elem.get('href') if link_elem else None
-            if not url:
-                continue
-            url = url.split('?')[0]  #remove query parameters
-            #
-            details_elem = ad.select_one('.ads__item__details') #select the details element
-            
-            details = details_elem.text if details_elem else ""
-            #extract car year
-            year_match = re.search(r'\b(19|20)\d{2}\b', details) #
-            year = int(year_match.group()) if year_match else None #
+            # استخراج الماركة والموديل
+            brand, model = "", ""
+            parts = title.split()
+            if parts:
+                brand = parts[0]
+                model = " ".join(parts[1:]) if len(parts) > 1 else ""
 
-            car = {
-                'title': title,
-                'price': float(price) if price else None, #
-                'year': year,
-                'url': url #get the url of the car
-            }
-            cars.append(car)
+            # السنة
+            year_elem = item.select_one(".car-year, .year")
+            year_text = year_elem.get_text(strip=True) if year_elem else ""
+            year = None
+            if year_text:
+                year_match = re.search(r'(\d{4})', year_text)
+                if year_match:
+                    year = int(year_match.group(1))
+
+            # السعر
+            price_elem = item.select_one(".car-price, .price")
+            price_text = price_elem.get_text(strip=True) if price_elem else ""
+            price = 0.0
+            if price_text:
+                price_match = re.search(r'[\d,]+', price_text)
+                if price_match:
+                    price = float(price_match.group().replace(",", ""))
+
+            # الكيلومترات
+            km_elem = item.select_one(".car-km, .mileage")
+            km_text = km_elem.get_text(strip=True) if km_elem else ""
+            mileage = 0
+            if km_text:
+                km_match = re.search(r'[\d,]+', km_text)
+                if km_match:
+                    mileage = int(km_match.group().replace(",", ""))
+
+            # الموقع (المدينة)
+            loc_elem = item.select_one(".car-location, .location")
+            location = loc_elem.get_text(strip=True) if loc_elem else "Egypt"
+
+            # رابط الإعلان
+            link_elem = title_elem  # عنوان العربية فيه رابط
+            url = link_elem.get("href", "")
+            if url and url.startswith("/"):
+                url = f"{BASE_URL}{url}"
+
+            cars.append({
+                "title": title,
+                "brand": brand,
+                "model": model,
+                "year": year,
+                "price": price,
+                "mileage": mileage,
+                "city": location,
+                "url": url,
+            })
         except Exception:
             continue
     return cars
-#import the database session and models
 
-
-# for saving the data to the database
-async def save_to_db(engine ,listings :List[Dict[str, Any]]) -> int:
-    if not listings:
-        return 0
-    added = 0
+async def save_car(engine, car_data: Dict[str, Any]) -> bool:
     async with AsyncSession(engine) as session:
-        for item in listings:
-            existing = await session.execute(
-                select(Car).where(Car.external_url == item['url'])
-            )
-            if existing.scalar_one_or_none():
-                continue  # مكرر
-            title_parts = item['title'].split()
-            brand = title_parts[0] if title_parts else "Unknown" #
-            model = " ".join(title_parts[1:3]) if len(title_parts) > 1 else "Unknown"
-            # Create a new car
-            # We assume brand/model are extracted from the title (e.g., "Toyota Corolla 2020")
-            # Here is a simple logic to split the title
-            title_parts = item['title'].split() # Split the title into words
-            brand = title_parts[0] if title_parts else "Unknown" # Get the first word as brand
-            model = " ".join(title_parts[1:3]) if len(title_parts) > 1 else "Unknown" # Get the second and third words as model
-            car = Car(
-                brand=brand,
-                model=model,
-                year=item['year'] or 2020,
-                price_consumer=item['price'] or 0,
-                price_dealer=item['price'] or 0,  # Temporary
-                condition="used",
-                external_url=item['url'],
-                owner_id=None,   # No owner specified
-                is_available=True,
-                is_deleted=False,
-                published=False   # Not published because it's raw data
-            )
-            session.add(car)
-            added += 1
+        existing = await session.execute(
+            select(Car).where(Car.external_url == car_data["url"])
+        )
+        if existing.scalar_one_or_none():
+            return False
+        car = Car(
+            brand=car_data["brand"] or (car_data["title"].split()[0] if car_data["title"] else "Unknown"),
+            model=car_data["model"] or "Unknown",
+            year=car_data["year"] or 2020,
+            price_consumer=car_data["price"],
+            price_dealer=car_data["price"],
+            condition="used",
+            external_url=car_data["url"],
+            owner_id=None,
+            is_available=True,
+            is_deleted=False,
+            published=False
+        )
+        session.add(car)
         await session.commit()
-    return added
+    return True
 
-
+def get_total_pages(html: str) -> int:
+    """يحدد عدد الصفحات من شريط التصفح"""
+    soup = BeautifulSoup(html, "html.parser")
+    # عادةً آخر رقم في الـ pagination
+    pagination = soup.select_one("ul.pagination li:last-child a")
+    if pagination:
+        try:
+            return int(pagination.get_text(strip=True))
+        except ValueError:
+            pass
+    return 1
 
 async def scrape_all():
-    logger.info("Starting scraper...")
-    engine = create_async_engine(get_db_url(), echo=True)
-    async with httpx.AsyncClient(headers=HEADERS) as client:
-         page = 1
-         while True:
-            url = f"{BASE_URL}?page={page}"
-            logger.info(f"Scraping page {page}: {url}")
-            html = await fetch_page(client, url)
-            if not html:
-                logger.info("No more pages to scrape.")
-                break
-            listings = parse_listing(html) #parse the html content
-            if not listings:
-                logger.info("No more listings to scrape.")
-                break
-            added = await save_to_db(engine, listings)
-            logger.info(f"Added {added} listings to database.")
-            page += 1 #move to the next page
-            await asyncio.sleep(3)  # for rate limiting to respect the server
-    await engine.dispose()
-    logger.info("Scraping completed.")
+    logger.info("Starting ContactCars scraper...")
+    engine = create_async_engine(get_db_url(), echo=False)
+    total_added = 0
 
+    # جلب الصفحة الأولى لمعرفة عدد الصفحات
+    first_page_url = f"{SEARCH_URL}?page=1"
+    logger.info(f"Fetching first page: {first_page_url}")
+    try:
+        resp = requests.get(first_page_url, headers=HEADERS, timeout=30)
+        if resp.status_code != 200:
+            logger.error(f"Failed to access ContactCars. Status: {resp.status_code}")
+            await engine.dispose()
+            return
+    except Exception as e:
+        logger.error(f"Connection error: {e}")
+        await engine.dispose()
+        return
+
+    total_pages = get_total_pages(resp.text)
+    logger.info(f"Total pages found: {total_pages}")
+
+    for page_num in range(1, total_pages + 1):
+        url = f"{SEARCH_URL}?page={page_num}"
+        logger.info(f"Scraping page {page_num}/{total_pages}: {url}")
+        if page_num > 1:
+            resp = requests.get(url, headers=HEADERS, timeout=30)
+            if resp.status_code != 200:
+                logger.warning(f"Page {page_num} returned {resp.status_code}, skipping.")
+                continue
+
+        cars = extract_cars_from_html(resp.text)
+        if not cars:
+            logger.info("No cars found on this page. Stopping.")
+            break
+
+        for car_data in cars:
+            if await save_car(engine, car_data):
+                total_added += 1
+                logger.info(f"Saved: {car_data['title'][:50]}...")
+
+        logger.info(f"Page {page_num} done. Total added so far: {total_added}")
+
+    await engine.dispose()
+    logger.info(f"Scraping completed. Total cars added: {total_added}")
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(scrape_all())
-    except KeyboardInterrupt: # Handle Ctrl+C
-        logger.info("Scraper stopped by user.")
-    except Exception as e: # Handle any other exceptions
-        logger.exception(f"Fatal error: {e}")
-        sys.exit(1) # Exit with error code
-
+    asyncio.run(scrape_all())

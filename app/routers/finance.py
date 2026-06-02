@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.engine.result import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from typing import List, Optional , Dict , Any
@@ -393,7 +394,7 @@ async def get_schedule_summary(
         raise
 
 
-@router.post("/applications/{application_id}/schedule/payment", response_model=Dict[str, Any])
+@router.post("/applications/{application_id}/schedule/payment", response_model=PaymentSummaryResponse)
 async def record_schedule_payment(
     application_id: UUID,
     amount: float,
@@ -405,7 +406,7 @@ async def record_schedule_payment(
     Supports partial payments, applies grace period for overdue days.
     """
     try:
-        rseult = await record_payment_against_schedule(db, application_id, amount, grace_period_days=grace_period_days)
+        result = await record_payment_against_schedule(db, application_id, amount, grace_period_days=grace_period_days)
         logger.info(
             f"Payment recorded for application: {application_id}, amount: {amount}",
             extra={"request_id": get_request_id(), "application_id": str(application_id), "amount": amount}

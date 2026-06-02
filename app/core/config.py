@@ -1,10 +1,9 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings , SettingsConfigDict
 from pathlib import Path
 from app.core.logging_config import logger
 import base64
 from pydantic import field_validator
-from functools import lru_cache
-
+from functools import cached_property
 
 
 # this file for settings and configurations for the application
@@ -33,12 +32,15 @@ class Settings(BaseSettings):
     PRIVATE_KEY_PATH: Path = BASE_DIR / "private.pem"
     PUBLIC_KEY_PATH: Path = BASE_DIR / "public.pem"
 
-    class Config:
-        env_file = str(ENV_FILE)
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = "ignore"
 
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE),
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
+
+     # Validate database password
     @field_validator('DATABASE_PASSWORD')
     @classmethod
     def validate_database_password(cls, v: str) -> str:
@@ -46,8 +48,9 @@ class Settings(BaseSettings):
             raise ValueError('DATABASE_PASSWORD is required and must be set in .env file')
         return v
 
-    @property # it's a property that returns a value
-    @lru_cache(maxsize=None)  # Cache the result to avoid repeated disk I/O
+
+     # it's a property that returns a value
+    @cached_property  # Cache the result to avoid repeated disk I/O
     def private_key(self) -> str:
         if self.PRIVATE_KEY_BASE64:
             # Decode from base64 environment variable
@@ -56,8 +59,8 @@ class Settings(BaseSettings):
             # Fallback to file reading for local development
             return self.PRIVATE_KEY_PATH.read_text()
 
-    @property # it's a property that returns a value
-    @lru_cache(maxsize=None)  # Cache the result to avoid repeated disk I/O
+     # it's a property that returns a value
+    @cached_property  # Cache the result to avoid repeated disk I/O
     def public_key(self) -> str:
         if self.PUBLIC_KEY_BASE64:
             # Decode from base64 environment variable

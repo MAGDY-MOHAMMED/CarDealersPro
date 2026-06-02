@@ -14,6 +14,8 @@ from app.schemas import CarUpdate, CarResponse, TokenData, CarCreate
 from app.services.car_service import get_filtered_cars
 from app.utils.filter_builder import build_filter_query
 from app.core.exceptions import NotFoundException, BadRequestException
+from starlette.responses import Response
+
 
 
 
@@ -22,7 +24,23 @@ router = APIRouter(
     prefix="/cars",
     tags=["Cars"],
 )
-
+# mechanism : convert Car object to CarResponse object
+def car_to_response(car: Car) -> CarResponse:
+    """يحول كائن Car إلى CarResponse مع إضافة الحقول الاختيارية بقيم افتراضية."""
+    return CarResponse(
+        id=car.id,
+        brand=car.brand,
+        model=car.model,
+        year=car.year,
+        price_consumer=car.price_consumer,
+        price_dealer=car.price_dealer,
+        color=car.color,
+        owner_id=car.owner_id,
+        owner_name=None,           # سيتم تحديثها في استعلامات GET فقط
+        ratings_count=0,
+        average_rating=None,
+        created_at=car.created_at
+    )
 
 def _serialize_car_row(row) -> CarResponse:
     return CarResponse(
@@ -56,7 +74,7 @@ async def get_all_cars (
 
     filter_params = {
         "brand": brand,
-        "price": max_price,
+        "price_consumer": max_price,
         "search": search,
         "color": color,
         "owner_id": owner_id # so the admin could see the cars
@@ -69,7 +87,7 @@ async def get_all_cars (
     # Build count filters dict (excluding search)
     count_filters = {
         "brand": brand,
-        "price": max_price,
+        "price_consumer": max_price,
         "color": color,
         "owner_id": owner_id
     }
@@ -199,7 +217,7 @@ async def create_cars (
     await db.commit()  # commit the transaction
     await db.refresh(new_car) # refresh the car object to get the id
     logger.info(f"Car created successfully", extra={"car_id": str(new_car.id), "request_id": get_request_id()})
-    return new_car # return the new car
+    return car_to_response(new_car) # return the new car
 
 
 
@@ -236,7 +254,7 @@ async def update_car(
     await db.commit()
     await db.refresh(car) # refresh the car to get the updated data
     logger.info(f"Car updated successfully", extra={"car_id": str(id), "request_id": get_request_id()})
-    return car # return the updated car
+    return car_to_response(car) # return the updated car
 
 
 

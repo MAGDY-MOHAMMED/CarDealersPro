@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.8' # Docker Compose version
 
 services:
   # ============================================================
@@ -6,7 +6,7 @@ services:
   # ============================================================
   api:
     build:
-      context: .
+      context: . # current directory
       dockerfile: Dockerfile
       args:
         - ENABLE_AI=${ENABLE_AI:-false}

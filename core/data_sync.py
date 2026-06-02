@@ -30,7 +30,7 @@ def get_async_db_url():
 
 #function for syncing parquet files to database
 async def sync_parquet_to_db():
-    engine = create_async_engine(await get_async_db_url(),echo=False) # echo=False to not print sql queries
+    engine = create_async_engine(get_async_db_url(),echo=False) # echo=False to not print sql queries
     parquet_path = Path("data/optimized/") # means data/optimized/ folder
     if not parquet_path.exists(): #
         logger.warning(f"Parquet directory {parquet_path} not found. Skipping sync.", exc_info=True,) # exc_info=True means print exception info

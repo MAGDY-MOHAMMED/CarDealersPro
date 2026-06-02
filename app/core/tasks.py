@@ -19,7 +19,7 @@ def compress_image(file_path: Path, quality: int = 85, max_size: tuple = (1920, 
         # Open image
         with Image.open(file_path) as img:
             # Resize if larger than max_size
-            if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
+            if img.size[0] > max_size[0] or img.size[1] > max_size[1]: # means width or height is larger than max_size
                 img.thumbnail(max_size, Image.Resampling.LANCZOS)
             
             # Convert to RGB if necessary (for JPEG)
@@ -59,7 +59,7 @@ def create_thumbnail(file_path: Path, thumbnail_path: Path, size: tuple = (300, 
     """
     try:
         with Image.open(file_path) as img:
-            img.thumbnail(size, Image.Resampling.LANCZOS) #.Resampling.LANCZOS means high quality
+            img.thumbnail(size, Image.Resampling.LANCZOS) # Resampling.LANCZOS means high quality
             img.save(thumbnail_path, "JPEG", quality=80, optimize=True)
             
             logger.info(
@@ -94,11 +94,11 @@ def create_video_thumbnail(file_path: Path, thumbnail_path: Path, timestamp: str
     try:
         # Use ffmpeg to extract thumbnail at specific timestamp
         cmd = [
-            "ffmpeg",
+            "ffmpeg", # 
             "-i", str(file_path), # means input file
             "-ss", timestamp, # means seek to timestamp
             "-vframes", "1", # means extract 1 frame
-            "-s", f"{size[0]}x{size[1]}", # means set size
+            "-s", f"{size[0]}x{size[1]}", # means set size , f"{size[0]}x{size[1]}" means width x height
             "-y",  # Overwrite output file if exists
             str(thumbnail_path)
         ]
@@ -114,7 +114,7 @@ def create_video_thumbnail(file_path: Path, thumbnail_path: Path, timestamp: str
                 "request_id": get_request_id()
             }
         )
-        #
+    #means ffmpeg failed
     except subprocess.CalledProcessError as e:
         logger.error(
             f"FFmpeg failed to create video thumbnail",
@@ -124,7 +124,7 @@ def create_video_thumbnail(file_path: Path, thumbnail_path: Path, timestamp: str
                 "request_id": get_request_id()
             }
         )
-        #
+    #means other error
     except Exception as e:
         logger.error(
             f"Failed to create video thumbnail",

@@ -93,7 +93,8 @@ def generate_unique_filename(original_filename: str) -> str:
     return f"{unique_id}{ext}" # return the unique filename with the extension
 
 
-# route for uploading car media
+# app/routers/media.py (استبدل دالة upload_car_media بالكامل)
+
 @router.post("/upload/{car_id}", response_model=CarMediaResponse, status_code=status.HTTP_201_CREATED)
 async def upload_car_media(
     car_id: UUID,
@@ -103,126 +104,128 @@ async def upload_car_media(
     current_user: TokenData = Depends(get_auth_user)
 ):
     """
-    Upload media (image or video) for a specific car.
-    Files are automatically routed to the appropriate directory:
-    - Images → storage/uploads/images/
-    - Videos → storage/uploads/videos/
+    Upload media (image or video) using chunked streaming.
+    Zero‑waste memory: never loads the full file into RAM.
     """
     request_id = get_request_id()
 
-    # Check disk space on the actual target filesystem, not the process root
-    STORAGE_BASE_DIR.mkdir(parents=True, exist_ok=True)
-    disk_usage = shutil.disk_usage(STORAGE_BASE_DIR)
-    free_space = disk_usage.free
-    if free_space < MIN_DISK_SPACE:
-        logger.warning(f"Insufficient disk space", extra={"free_space": free_space, "required": MIN_DISK_SPACE, "request_id": request_id})
-        raise InsufficientStorageException(
-            required=MIN_DISK_SPACE,
-            available=free_space
-        )
-
-    # Check if car exists
+    # 1. صلاحية السيارة والمستخدم (بدون لمس الملف)
     result = await db.execute(select(Car).where(Car.id == car_id))
     car = result.scalar_one_or_none()
     if not car:
-        logger.warning(f"Car not found for media upload", extra={"car_id": str(car_id), "request_id": request_id})
         raise NotFoundException("Car", str(car_id))
     if current_user.role != UserRole.ADMIN.value and car.owner_id != current_user.user_id:
         raise ForbiddenException(message="You are not allowed to upload media for this car")
 
-    # Validate file size
-    file_content = await file.read() # read the file content
-    async with aiofiles.open("test.txt", "wb") as buffer: #
-        await buffer.write(file_content) 
-    chunk_size = 1024 * 1024 # 1MB # chunk size
-    async with aiofiles.open("test2.txt", "wb") as buffer:
-        while chunk := await file.read(chunk_size):
-            await buffer.write(chunk)
-    if len(file_content) > MAX_FILE_SIZE:
-        logger.warning(f"File too large", extra={"size": len(file_content), "request_id": request_id})
-        raise BadRequestException(
-            message=f"File size exceeds maximum allowed size of {MAX_FILE_SIZE / (1024 * 1024)}MB",
-            details={"file_size": len(file_content), "max_size": MAX_FILE_SIZE}
-        )
-
-    # Reset file position after reading
-    await file.seek(0) # seek 0 means go to the beginning of the file
-
-    # Determine media type
+    # 2. تحديد نوع الوسائط من الامتداد
     try:
-        media_type = get_media_type_from_filename(file.filename) # get the media type from the filename
-    except BadRequestException as e:
+        media_type = get_media_type_from_filename(file.filename)
+    except BadRequestException:
         logger.warning(f"Invalid file type", extra={"filename": file.filename, "request_id": request_id})
-        raise e
+        raise # Invalid file type
 
-    # Validate actual file type using magic numbers
-    try:
-        validate_file_type_with_magic(file_content, media_type)
-        logger.info(f"File type validated with magic", extra={"filename": file.filename, "media_type": media_type.value, "request_id": request_id})
-    except BadRequestException as e:
-        logger.warning(f"Magic validation failed", extra={"filename": file.filename, "request_id": request_id})
-        raise e
-
-    # Get storage directory
-    storage_dir = get_storage_directory(media_type) # get the storage directory based on the media type
-
-    # Ensure directory exists
-    storage_dir.mkdir(parents=True, exist_ok=True) # create the directory if it doesn't exist
-
-    # Generate unique filename
-    unique_filename = generate_unique_filename(file.filename) # generate a unique filename to avoid conflicts
+    # 3. تجهيز المجلد والمسار
+    storage_dir = get_storage_directory(media_type)
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    unique_filename = generate_unique_filename(file.filename)
     file_path = storage_dir / unique_filename
 
-    # Save file using async writes
+    # 4. التأكد من وجود مساحة على القرص
+    STORAGE_BASE_DIR.mkdir(parents=True, exist_ok=True)
+    disk_usage = shutil.disk_usage(STORAGE_BASE_DIR)
+    if disk_usage.free < MIN_DISK_SPACE:
+        raise InsufficientStorageException(required=MIN_DISK_SPACE, available=disk_usage.free)
+
+    # 5. الإعدادات: حجم القطعة، الحجم الأقصى، الحجم التراكمي
+    CHUNK_SIZE = 1024 * 1024  # 1MB
+    MAX_SIZE = MAX_FILE_SIZE   # 100MB
+    total_size = 0
+    first_chunk = True
+
+    # 6. قراءة وكتابة متدفقة (Chunked)
     try:
         async with aiofiles.open(file_path, "wb") as buffer:
-            await buffer.write(file_content)
-        logger.info(f"File saved successfully", extra={"path": str(file_path), "request_id": request_id})
+            while True:
+                # قراءة قطعة من UploadFile
+                chunk = await file.read(CHUNK_SIZE)
+                if not chunk:
+                    break
+
+                total_size += len(chunk)
+                if total_size > MAX_SIZE:
+                    # تجاوز الحجم ← نمسح الملف ونرفع خطأ
+                    await buffer.close()
+                    os.remove(file_path)
+                    logger.warning("File too large", extra={"size": total_size, "request_id": request_id})
+                    raise BadRequestException(
+                        message=f"File size exceeds maximum allowed size of {MAX_SIZE // (1024*1024)}MB",
+                        details={"current_size": total_size, "max_size": MAX_SIZE}
+                    )
+
+                # فحص Magic Bytes على أول قطعة فقط
+                if first_chunk:
+                    first_chunk = False
+                    # نحتاج أول 2048 بايت عشان magic
+                    # ناخد أول 2048 بايت من القطعة الحالية (قد تكون القطعة أكبر)
+                    magic_sample = chunk[:2048]
+                    # نفحص النوع باستخدام magic
+                    mime = magic.Magic(mime=True)
+                    detected_mime = mime.from_buffer(magic_sample) #from buffer means from the chunk
+                    if media_type == MediaType.IMAGE:
+                        if detected_mime not in ALLOWED_IMAGE_MIME_TYPES:
+                            await buffer.close()
+                            os.remove(file_path)
+                            logger.warning("Invalid file type", extra={"filename": file.filename, "detected_mime": detected_mime, "expected": "image", "request_id": request_id})
+                            raise BadRequestException(
+                                message=f"Invalid file type. Expected image, got: {detected_mime}",
+                                details={"detected_mime": detected_mime, "expected": "image"}
+                            )
+                            
+                    else:
+                        if detected_mime not in ALLOWED_VIDEO_MIME_TYPES:
+                            await buffer.close()
+                            os.remove(file_path)
+                            logger.warning("Invalid file type", extra={"filename": file.filename, "detected_mime": detected_mime, "expected": "video", "request_id": request_id})
+                            raise BadRequestException(
+                                message=f"Invalid file type. Expected video, got: {detected_mime}",
+                                details={"detected_mime": detected_mime, "expected": "video"}
+                            )
+                    logger.info("File type validated with magic (first chunk)", extra={"filename": file.filename, "request_id": request_id})
+
+                # كتابة القطعة إلى القرص
+                await buffer.write(chunk)
+
+    except BadRequestException:
+        raise  # نمرر الأخطاء المقصودة
     except Exception as e:
-        logger.error(f"Failed to save file", extra={"error": str(e), "request_id": request_id})
-        raise InternalServerException(
-            message="Failed to save file",
-            details={"error": str(e)}
-        )
+        logger.error("Failed to save file", extra={"error": str(e), "request_id": request_id})
+        if file_path.exists(): # Delete the file if it exists
+            os.remove(file_path)
+        raise InternalServerException(message="Failed to save file", details={"error": str(e)})
 
-    # Create media URL (relative path without /storage/ prefix for AWS compatibility)
-    # Frontend Note: When displaying media, prepend server URL: https://api.cardealerspro.com/static/ + media_url
-    media_url = f"uploads/{media_type.value}s/{unique_filename}" # relative path
-
-    # Create database record
+    # 7. إنشاء سجل في قاعدة البيانات
+    media_url = f"uploads/{media_type.value}s/{unique_filename}"
     media_data = CarMediaCreate(
         car_id=car_id,
         media_url=media_url,
         media_type=media_type,
-        file_size=len(file_content)
+        file_size=total_size
     )
-
-    new_media = CarMedia(**media_data.model_dump()) # create a new media object
+    new_media = CarMedia(**media_data.model_dump())
     db.add(new_media)
-
     try:
         await db.commit()
         await db.refresh(new_media)
     except Exception as e:
-        # Rollback and delete file if database commit fails
         await db.rollback()
-        try:
-            os.remove(file_path)
-            logger.warning(f"File deleted due to database commit failure", extra={"path": str(file_path), "request_id": request_id})
-        except Exception as delete_error:
-            logger.error(f"Failed to delete file after database commit failure", extra={"error": str(delete_error), "request_id": request_id})
-        logger.error(f"Database commit failed", extra={"error": str(e), "request_id": request_id})
-        raise InternalServerException(
-            message="Failed to save media record",
-            details={"error": str(e)}
-        )
+        os.remove(file_path) # Delete the file if it exists , why ? to avoid orphan files
+        raise InternalServerException(message="Failed to save media record", details={"error": str(e)})
 
-    logger.info(f"Media uploaded successfully", extra={"media_id": str(new_media.id), "request_id": request_id})
+    logger.info("Media uploaded successfully", extra={"media_id": str(new_media.id), "request_id": request_id})
 
-    # Add background task to compress image (only for images)
+    # 8. مهام الخلفية (ضغط / صورة مصغرة)
     if media_type == MediaType.IMAGE:
         background_tasks.add_task(compress_image, file_path)
-    # Add background task to create video thumbnail (only for videos)
     elif media_type == MediaType.VIDEO:
         thumbnail_path = file_path.parent / f"{file_path.stem}_thumb.jpg"
         background_tasks.add_task(create_video_thumbnail, file_path, thumbnail_path)
@@ -252,7 +255,7 @@ async def get_car_media(
     if not car:
         logger.warning(f"Car not found", extra={"car_id": str(car_id), "request_id": request_id})
         raise NotFoundException("Car", str(car_id))
-
+    
     # Build query using build_filter_query
     query = select(CarMedia).where(CarMedia.car_id == car_id)
 

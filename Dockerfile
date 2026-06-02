@@ -1,6 +1,6 @@
-# Optimized Dockerfile for faster builds on Hugging Face
+# Optimized Dockerfile for faster builds on Hugging Face , this port here for deployment not for local development  
 FROM python:3.11-slim
-
+#
 WORKDIR /app
 
 # Set environment variables early
@@ -23,14 +23,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean
 
 # Copy and install Python dependencies
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN uv pip install --system --no-cache -r requirements.txt
 
 # Install AI dependencies only if ENABLE_AI=true
 COPY requirements-ai.txt .
 RUN if [ "$ENABLE_AI" = "true" ]; then \
     echo "Installing AI dependencies..."; \
-    pip install --no-cache-dir -r requirements-ai.txt; \
+    uv pip install --system --no-cache -r requirements-ai.txt; \
     else \
     echo "AI dependencies skipped (ENABLE_AI=false)"; \
     fi
