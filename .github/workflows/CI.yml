@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        # هنا الـ sha256 صحيح تماماً لأنها حاوية Docker وليست GitHub Action
         image: postgres@sha256:39bf22a27fc16997092305763ca7b8277be9404be66c14b53fa9cb90afb20dc1
         env:
           POSTGRES_USER: postgres
@@ -66,14 +65,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.29.0
-        with:
-          image-ref: ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
+      - name: Scan image for vulnerabilities (Docker Native)
+        run: |
+          docker run --rm \
+            -v $HOME/.docker/config.json:/root/.docker/config.json \
+            aquasecurity/trivy:0.53.0 image \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --severity CRITICAL,HIGH \
+            ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
 
   deploy-to-hf:
     needs: test-and-build
