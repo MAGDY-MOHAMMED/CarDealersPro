@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres@sha256:39bf22a27fc16997092305763ca7b8277be9404be66c14b53fa9cb90afb20dc1
+        # استخدام الوسم المستقر يضمن العثور على الصورة دائماً بمعمارية الـ Runner الصحيحة
+        image: postgres:16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
