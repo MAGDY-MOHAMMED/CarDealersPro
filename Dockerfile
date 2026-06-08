@@ -1,5 +1,5 @@
 # Optimized Dockerfile for faster builds on Hugging Face , this port here for deployment not for local development  
-FROM python:3.11-slim
+FROM python:3.14-slim
 #
 WORKDIR /app
 
