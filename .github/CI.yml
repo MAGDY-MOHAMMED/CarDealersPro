@@ -60,24 +60,32 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:latest
+          # to store the layers in github actions cache
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # to restore the layers from github actions cache and speed up the build the next upload the build will take a few seconds why ?, because the layers are already cached in github actions cache
+          cache-to: type=gha,mode=max 
 
       - name: Deploy to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_USERNAME: magdy1441   # أو magdy2467 حسب حسابك
+          HF_USERNAME: magdy1441  
         run: |
           SPACE_URL="https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro"
           git clone $SPACE_URL hf-space
           cp Dockerfile.hf hf-space/Dockerfile
           cd hf-space
-          git config user.name "GitHub CI"
-          git config user.email "ci@cardealerspro.com"
-          git add Dockerfile
-          if git diff --staged --quiet; then
+          # to identify the commit author
+          git config user.name "GitHub CI"      
+          # to identify the commit author
+          git config user.email "ci@cardealerspro.com" 
+          # to add the Dockerfile to the commit
+          git add Dockerfile 
+          # if there are no changes to commit
+          if git diff --staged --quiet; then 
             echo "No changes to deploy"
           else
-            git commit -m "Update Docker image reference [skip ci]"
-            git push origin main
+            # to commit the changes # [skip ci] to skip the CI/CD pipeline
+            git commit -m "Update Docker image reference [skip ci]" 
+            # to push the changes to the remote repository
+            git push origin main 
           fi

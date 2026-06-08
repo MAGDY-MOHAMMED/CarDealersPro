@@ -25,7 +25,7 @@ async def test_login_invalid(client: AsyncClient):
 async def test_login_inactive_user(client: AsyncClient, db_session, base_data):
     user = await db_session.get(User, base_data["client_id"])
     user.is_active = False
-    await db_session.flush()
+    await db_session.flush() # why flush ?,
 
     res = await client.post("/auth/login", json={
         "email": "client@test.com",

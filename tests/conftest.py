@@ -50,9 +50,10 @@ def disable_logging():
     logging.disable(logging.NOTSET)
 
 # ========== مفاتيح JWT وهمية ==========
+#the mechanism ,
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_test_keys():
-    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048) 
     private_pem = key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
@@ -189,19 +190,19 @@ async def client(test_app, db_session):
 # ========== كائنات المستخدمين ==========
 @pytest_asyncio.fixture
 async def dealer_user(db_session, base_data):
-    return await db_session.get(User, base_data["dealer_id"])
+    return await db_session.get(User, base_data["dealer_id"]) 
 
 @pytest_asyncio.fixture
 async def client_user(db_session, base_data):
-    return await db_session.get(User, base_data["client_id"])
+    return await db_session.get(User, base_data["client_id"]) 
 
 @pytest_asyncio.fixture
 async def admin_user(db_session, base_data):
-    return await db_session.get(User, base_data["admin_id"])
+    return await db_session.get(User, base_data["admin_id"]) 
 
 @pytest_asyncio.fixture
 async def bank_user(db_session, base_data):
-    return await db_session.get(User, base_data["bank_id"])
+    return await db_session.get(User, base_data["bank_id"]) 
 
 @pytest_asyncio.fixture
 async def car_id(base_data):
