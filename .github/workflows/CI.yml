@@ -59,7 +59,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6 #hey
         with:
-          context: . 
+          context: . #hey mag
           file: ./Dockerfile
           push: true
           tags: |
