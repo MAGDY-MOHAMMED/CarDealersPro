@@ -72,7 +72,7 @@ jobs:
         run: |
           docker run --rm \
             -v $HOME/.docker/config.json:/root/.docker/config.json \
-            aquasecurity/trivy:0.53.0 image \
+            ghcr.io/aquasecurity/trivy:0.53.0 image \
             --exit-code 1 \
             --ignore-unfixed \
             --severity CRITICAL,HIGH \
