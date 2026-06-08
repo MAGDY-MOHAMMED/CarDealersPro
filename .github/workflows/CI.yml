@@ -101,14 +101,12 @@ jobs:
           git config user.name "GitHub CI"
           git config user.email "ci@cardealerspro.com"
           
-          # هذه الإضافة الحاسمة: تحديث الرابط البعيد لاستخدام التوكن
-          git remote set-url origin "https://${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro"
-          
           git add Dockerfile
           
           if git diff --staged --quiet; then
             echo "No changes to deploy"
           else
             git commit -m "Deploy immutable image ${{ github.sha }} [skip ci]"
-            git push origin main
+            # الدفع المباشر باستخدام التوكن بدون الاعتماد على الـ Remote السابق
+            git push "https://${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro" HEAD:main
           fi
