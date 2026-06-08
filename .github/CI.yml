@@ -15,8 +15,8 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: Magdy123456
-          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          POSTGRES_DB: cardealerspro_test
         ports:
           - 5432:5432
         options: >-
@@ -26,8 +26,9 @@ jobs:
           --health-retries 5
 
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       TEST_DATABASE_USERNAME: postgres
-      TEST_DATABASE_PASSWORD: Magdy123456
+      TEST_DATABASE_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
       TEST_DATABASE_HOSTNAME: localhost
       TEST_DATABASE_PORT: 5432
       TEST_DATABASE_NAME: cardealerspro_test
@@ -56,7 +57,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: . #means the current directory
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:latest

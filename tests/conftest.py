@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 load_dotenv()
 # إعدادات PostgreSQL
 DB_USER = os.getenv("TEST_DATABASE_USERNAME", "postgres")
-DB_PASS = os.getenv("TEST_DATABASE_PASSWORD", "Magdy123456")
+DB_PASS = os.getenv("TEST_DATABASE_PASSWORD", "postgres")
 DB_HOST = os.getenv("TEST_DATABASE_HOSTNAME", "localhost")
 DB_PORT = os.getenv("TEST_DATABASE_PORT", "5433")    # 5433 محلياً، وفي CI سنمرر 5432
 DB_NAME = os.getenv("TEST_DATABASE_NAME", "cardealerspro_test")
@@ -39,7 +39,7 @@ def pytest_configure(config):
         try:
             import uvloop
             uvloop.install()
-            print("✅ uvloop installed for test session")
+            print(" uvloop installed for test session")
         except ImportError:
             pass
 
