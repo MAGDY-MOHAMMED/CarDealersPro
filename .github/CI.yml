@@ -91,11 +91,11 @@ jobs:
           # 1. استنساخ باستخدام التوكن كـ Username (لا حاجة لـ oauth2)
           git clone --depth 1 "https://${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro" hf-space
           
-          # 2. نسخ وتحديث Dockerfile
+          # 2. نسخ وتحديث Dockerfile # bla bla bla
           cp Dockerfile.hf hf-space/Dockerfile
           sed -i "s|DOCKER_HUB_USERNAME/cardealerspro:latest|${DOCKER_HUB_USERNAME}/cardealerspro:${{ github.sha }}|g" hf-space/Dockerfile
           
-          cd hf-space
+          cd hf-space 
           git config user.name "GitHub CI"
           git config user.email "ci@cardealerspro.com"
           
