@@ -67,7 +67,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.29.0
         with:
           image-ref: ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
           format: 'table'
