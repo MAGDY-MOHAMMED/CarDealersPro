@@ -101,6 +101,7 @@ jobs:
           git config user.name "GitHub CI"
           git config user.email "ci@cardealerspro.com"
           
+          # هذه الإضافة الحاسمة: تحديث الرابط البعيد لاستخدام التوكن
           git remote set-url origin "https://${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro"
           
           git add Dockerfile
