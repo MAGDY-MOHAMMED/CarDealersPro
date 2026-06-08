@@ -85,7 +85,7 @@ jobs:
       - name: Deploy to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_USERNAME: magdy2467
+          HF_USERNAME: magdy2467 #the name of the Hugging Face user
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         run: |
           # 1. إعداد رابط المستودع بدون حرق الأسرار داخله مباشرة
