@@ -1,1 +1,1 @@
-FROM magdy1441/cardealerspro:latest
+FROM DOCKER_HUB_USERNAME/cardealerspro:latest
