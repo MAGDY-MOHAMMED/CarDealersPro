@@ -33,10 +33,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@sha256:a5ac7e51b41094c92402da3b24376905380afc29af064615950ac526006e572b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29af064615950ac526006e572b # v4.2.2
 
       - name: Install uv
-        uses: astral-sh/setup-uv@sha256:1a84f3df6d38b68fc3ef5c83fa41f2ff2b01289ee0dfbe6143f6ff3a059d0407
+        uses: astral-sh/setup-uv@1a84f3df6d38b68fc3ef5c83fa41f2ff2b01289ee0dfbe6143f6ff3a059d0407 # v1.0.0
 
       - name: Install dependencies
         run: uv pip install --system -r requirements.txt
@@ -45,16 +45,16 @@ jobs:
         run: pytest -v
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@sha256:d70bba31264b341c4283f2749092e63c0386cb0859a8274d2ff361b33029f94
+        uses: docker/setup-buildx-action@d70bba31264b341c4283f2749092e63c0386cb0859a8274d2ff361b33029f94 # v3.0.0
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@sha256:0d22f16e20255348817c767f4963398b182046e01538de1743a1375fd843936a
+        uses: docker/login-action@0d22f16e20255348817c767f4963398b182046e01538de1743a1375fd843936a # v3.0.0
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@sha256:a1a7710d34114e1fdd1ae63c12a7a40307049e7b2f6efcb6f9661f77d33d6477
+        uses: docker/build-push-action@a1a7710d34114e1fdd1ae63c12a7a40307049e7b2f6efcb6f9661f77d33d6477 # v6.0.0
         with:
           context: .
           file: ./Dockerfile
@@ -66,7 +66,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@18f259c25ffdd120d873c9d4e5ded756b15e4a36
+        uses: aquasecurity/trivy-action@18f259c25ffdd120d873c9d4e5ded756b15e4a36 # v0.29.0
         with:
           image-ref: ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
           format: 'table'
@@ -80,7 +80,7 @@ jobs:
     environment: production
     steps:
       - name: Checkout
-        uses: actions/checkout@sha256:a5ac7e51b41094c92402da3b24376905380afc29af064615950ac526006e572b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29af064615950ac526006e572b # v4.2.2
 
       - name: Deploy to Hugging Face Space
         env:
@@ -88,10 +88,10 @@ jobs:
           HF_USERNAME: magdy2467
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         run: |
-          # 1. استنساخ باستخدام التوكن كـ Username (لا حاجة لـ oauth2)
+          # 1. استنساخ المستودع باستخدام التوكن كـ Username
           git clone --depth 1 "https://${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro" hf-space
           
-          # 2. نسخ وتحديث Dockerfile # bla bla bla
+          # 2. نقل وتحديث ملف الـ Dockerfile بالـ Tag الثابت المرتبط بالـ Commit الحالية
           cp Dockerfile.hf hf-space/Dockerfile
           sed -i "s|DOCKER_HUB_USERNAME/cardealerspro:latest|${DOCKER_HUB_USERNAME}/cardealerspro:${{ github.sha }}|g" hf-space/Dockerfile
           
@@ -99,7 +99,7 @@ jobs:
           git config user.name "GitHub CI"
           git config user.email "ci@cardealerspro.com"
           
-          # 3. تحديث الـ Remote لاستخدام التوكن (لعمل push)
+          # 3. تحديث مسار الـ Remote لعمل Push مستقر وآمن بدون تكرار طلب الصلاحيات
           git remote set-url origin "https://${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro"
           
           git add Dockerfile
