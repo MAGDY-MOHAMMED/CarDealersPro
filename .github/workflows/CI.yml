@@ -107,6 +107,6 @@ jobs:
             echo "No changes to deploy"
           else
             git commit -m "Deploy immutable image ${{ github.sha }} [skip ci]"
-            # الدفع المباشر باستخدام التوكن بدون الاعتماد على الـ Remote السابق
+            # الدفع المباشر باستخدام التوكن
             git push "https://${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro" HEAD:main
           fi
