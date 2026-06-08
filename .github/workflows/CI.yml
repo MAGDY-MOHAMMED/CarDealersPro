@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        # استخدام الوسم المستقر يضمن العثور على الصورة دائماً بمعمارية الـ Runner الصحيحة
         image: postgres:16
         env:
           POSTGRES_USER: postgres
@@ -20,7 +19,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -39,11 +38,15 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v1
 
+      # إنشاء البيئة الافتراضية وتثبيت الحزم داخلها بشكل معزول وآمن
       - name: Install dependencies
-        run: uv pip install --system -r requirements.txt
+        run: |
+          uv venv
+          uv pip install -r requirements.txt
 
+      # تشغيل الاختبارات من خلال بيئة الـ venv التي تم إنشاؤها تلقائياً
       - name: Run tests
-        run: pytest -v
+        run: uv run pytest -v
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
