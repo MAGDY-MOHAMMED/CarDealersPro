@@ -31,6 +31,7 @@ jobs:
       TEST_DATABASE_HOSTNAME: localhost
       TEST_DATABASE_PORT: 5432
       TEST_DATABASE_NAME: cardealerspro_test
+      MIN_DISK_SPACE_MB: "0"
 
     steps:
       - name: Checkout
