@@ -1,4 +1,4 @@
-litellm
+litellm==1.84.0
 openai
 huggingface-hub
 tiktoken
