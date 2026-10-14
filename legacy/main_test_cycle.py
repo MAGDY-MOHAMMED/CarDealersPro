@@ -31,7 +31,7 @@ def run_full_business_cycle () :
     inspection = InspectionManager(inventory_manager=inventory)
     finance = FinanceManager()
     print("\n" + "="*50)
-    print("🚀 STARTING FULL AUTO-SYSTEM TEST CYCLE")
+    print(" STARTING FULL AUTO-SYSTEM TEST CYCLE")
     print("="*50)
     dealer = DealerProfile.register_new_dealer(email= "dealer@example.com",company_name="Abu Shousha Motors", full_name="Magdy Mohamed Abu Shousha", tax_id="12345678901")
     identity.register_user(dealer) # must sign in the system first
@@ -51,13 +51,12 @@ def run_full_business_cycle () :
         "condition": "new"
     }
     car = inventory.add_vehicle(dealer.email, car_data)
-    print(f"✅ STEP 1: Vehicle {car.make} {car.model} listed by Dealer.") # make means 
+    print(f" STEP 1: Vehicle {car.make} {car.model} listed by Dealer.") # make means 
     media_links = [
         StorageService.upload_mock_file("front_view.jpg", "images"),
         StorageService.upload_mock_file("engine_start.mp4", "videos")
     ]
-    print("🔍 AI is analyzing video frames and audio...")
-    # محاكاة لنتائج الـ AI بناءً على الميديا
+    print(" AI is analyzing video frames and audio...")
     mock_scores = {
         "engine": 85.0,
         "body": 90.0,
@@ -66,7 +65,7 @@ def run_full_business_cycle () :
         "suspension": 80.0
     } 
     report = inspection.submit_report(inspector.email, car.vin, mock_scores, "Perfect condition, sound is clean.")
-    print(f"✅ STEP 2: Inspection Report Generated. Score: {report.final_score}%")
+    print(f" STEP 2: Inspection Report Generated. Score: {report.final_score}%")
 
     try :
         print(f"\n--- Processing Financing for {client.full_name} ---")

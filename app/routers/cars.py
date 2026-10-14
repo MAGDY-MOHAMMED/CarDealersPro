@@ -35,6 +35,11 @@ def car_to_response(car: Car) -> CarResponse:
         price_consumer=car.price_consumer,
         price_dealer=car.price_dealer,
         color=car.color,
+        mileage=car.mileage,
+        fuel_type=car.fuel_type,
+        transmission=car.transmission,
+        body_type=car.body_type,
+        engine_capacity=car.engine_capacity,
         owner_id=car.owner_id,
         owner_name=None,           # سيتم تحديثها في استعلامات GET فقط
         ratings_count=0,

@@ -1,5 +1,6 @@
 import sys
 import os
+os.environ.setdefault("MIN_DISK_SPACE_MB", "0")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + "/..")
 import sys
 import base64
@@ -35,13 +36,9 @@ TEST_DB_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB
 
 # ========== uvloop ==========
 def pytest_configure(config):
-    if sys.platform != "win32":
-        try:
-            import uvloop
-            uvloop.install()
-            print(" uvloop installed for test session")
-        except ImportError:
-            pass
+    # uvloop.install() is deprecated on Python 3.12+. Tests don't need the
+    # extra throughput — the default asyncio loop is fine and avoids warnings.
+    pass
 
 @pytest_asyncio.fixture(autouse=True)
 def disable_logging():

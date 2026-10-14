@@ -1,69 +1,116 @@
-# Python
+# =====================================================================
+# .dockerignore — CarDealersPro
+# Purpose: keep the Docker build context as small as possible.
+# Every excluded path saves BOTH transfer time AND disk on the runner.
+# =====================================================================
+
+# ---- Virtual environments (largest offenders — 3-4 GB) ----
+.venv/
+venv/
+env/
+ENV/
+pythonenv*/
+
+# ---- Python artifacts ----
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-venv/
-env/
-ENV/
-.venv
+*.egg-info/
+.eggs/
+build/
+dist/
+wheelhouse/
 
-# Environment Variables
-.env
-.env.local
-.env.*.local
+# ---- Test / coverage / lint caches ----
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# ---- ML artifacts (regenerated at runtime) ----
+ai_models/
+data/
+storage/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.joblib
+*.npy
+*.npz
+*.parquet
+*.csv
+*.tsv
+*.feather
+*.arrow
+*.jsonl
+*.xlsx
+*.xls
 
-# Logs
-logs/
-*.log
-
-# IDE
+# ---- Git / CI / IDE ----
+.git/
+.gitignore
+.gitattributes
+.github/
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
-.DS_Store
-Thumbs.db
+# ---- Docs (except README which is useful in some cases) ----
+*.md
+!README.md
+docs/
+screenshots/
+downloads/
 
-# RSA Keys
-*.pem
-private.pem
-public.pem
+# ---- AI tooling output ----
+repomix-output.xml
+repomix-output/
+repomix-summary/
+repomix.xml
+.clinerules/
+.clineignore
+.continue/
 
-# Git
-.git/
-.gitignore
-
-# Docker
-Dockerfile
-docker-compose.yml
-.dockerignore
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Temporary files
+# ---- Junk / scratch ----
 *.tmp
 *.bak
+*.orig
+*.rej
+1234.txt
+data_backup.sql
+*.ico
 
-# Aider
-.aider*
-.aider.conf.yml
+# ---- Secrets (NEVER shipped into an image) ----
+.env
+.env.local
+.env.*.local
+*.pem
+secrets/
+*.key
+*.crt
+private_base64.txt
+public_base64.txt
 
-# Documentation
-README.md
-ELK_README.md
+# ---- ELK runtime ----
+elk/
+filebeat_data/
 
-# ELK Stack
-filebeat_env.yml
+# ---- Docker itself (no need to ship configs into the build) ----
+Dockerfile
+Dockerfile.hf
+docker-compose.yml
+docker-compose.test.yml
+.dockerignore

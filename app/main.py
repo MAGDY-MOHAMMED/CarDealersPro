@@ -33,11 +33,16 @@ load_dotenv()
 
 if sys.platform != "win32":
     try:
-        import uvloop
-        uvloop.install()
-        logger.info("uvloop installed successfully - using libuv-based event loop", extra={"request_id": "N/A"})
+        import uvloop  # noqa: F401
+        logger.info(
+            "uvloop available — uvicorn will use it on Linux",
+            extra={"request_id": "N/A"},
+        )
     except ImportError:
-        logger.warning("uvloop not available, using default event loop", extra={"request_id": "N/A"})
+        logger.warning(
+            "uvloop not available, using default event loop",
+            extra={"request_id": "N/A"},
+        )
 
 # Standardized Constants (using Final to prevent modification)
 APP_TITLE: Final = "CarDealersPro API"
