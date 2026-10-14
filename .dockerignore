@@ -80,9 +80,7 @@ public_base64.txt
 
 # Junk / scratch files
 1234.txt
-int
-str
-List[Dict[str
+
 data_backup.sql
 *.ico
 repomix-output.*
