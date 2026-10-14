@@ -1,4 +1,4 @@
-litellm==1.45.0
+litellm==1.84.0git add requirements-ai.txt
 openai
 huggingface-hub
 tiktoken
