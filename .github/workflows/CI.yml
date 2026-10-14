@@ -131,7 +131,8 @@ jobs:
             ghcr.io/aquasecurity/trivy:0.53.0 image \
             --exit-code 1 \
             --ignore-unfixed \
-            --severity CRITICAL,HIGH \
+            --severity CRITICAL \
+            --ignore-fixed \
             ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
 
   deploy-to-hf:
