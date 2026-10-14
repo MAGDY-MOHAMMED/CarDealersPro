@@ -1,56 +1,91 @@
-# Optimized Dockerfile for faster builds on Hugging Face , this port here for deployment not for local development  
-FROM python:3.11-slim
-#
+# syntax=docker/dockerfile:1.6
+
+# =============================================================================
+# Stage 1 — Builder
+# =============================================================================
+FROM python:3.11-slim AS builder
+
 WORKDIR /app
 
-# Set environment variables early
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Build argument to enable AI features (default: false for faster builds)
-ARG ENABLE_AI=false
-ENV ENABLE_AI=${ENABLE_AI}
-
-# Install system dependencies in a single layer
+# Build-time toolchain (only needed to compile native wheels).
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    libmagic1 \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
+# Fast pip replacement.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY requirements.txt .
-RUN uv pip install --system --no-cache -r requirements.txt
+# Requirements are copied separately for better layer caching.
+COPY requirements.txt requirements-ml.txt requirements-ai.txt ./
 
-# Install AI dependencies only if ENABLE_AI=true
-COPY requirements-ai.txt .
+# `ENABLE_AI` gates ONLY the extra LLM/client packages (litellm, openai, ...).
+# The ML stack (torch, numpy, pandas, sklearn) is ALWAYS installed because
+# app.main imports the AI router which imports the ML services.
+ARG ENABLE_AI=false
 RUN if [ "$ENABLE_AI" = "true" ]; then \
-    echo "Installing AI dependencies..."; \
-    uv pip install --system --no-cache -r requirements-ai.txt; \
+        uv pip install --system --no-cache \
+            -r requirements.txt \
+            -r requirements-ml.txt \
+            -r requirements-ai.txt ; \
     else \
-    echo "AI dependencies skipped (ENABLE_AI=false)"; \
+        uv pip install --system --no-cache \
+            -r requirements.txt \
+            -r requirements-ml.txt ; \
     fi
-ENV PORT=7860
 
-# Copy application code
+
+# =============================================================================
+# Stage 2 — Runtime
+# =============================================================================
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    MPLBACKEND=Agg
+
+# Runtime-only shared libraries.
+#
+# IMPORTANT — `libgl1-mesa-glx` is DEPRECATED on Debian Bookworm and no longer
+# installable. The correct split is `libgl1` + `libglx-mesa0`. Adding the
+# X11 stubs (libsm6/libxext6/libxrender1) prevents cryptic "libGL.so.1:
+# cannot open shared object file" errors from OpenCV in Pillow/torchvision.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libpq5 \
+        libmagic1 \
+        libgl1 \
+        libglx-mesa0 \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender1 \
+        ffmpeg \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Bring in everything built in stage 1.
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
 COPY . .
 
-# Create storage directories
-RUN mkdir -p /app/storage/uploads/images /app/storage/uploads/videos && \
-    chmod -R 755 /app/storage
+# Pre-create runtime directories with correct ownership.
+RUN mkdir -p /app/storage/uploads/images \
+             /app/storage/uploads/videos \
+             /app/ai_models/ai_artifacts \
+             /app/data/optimized
 
-# Expose port
-EXPOSE 7860
+EXPOSE 8000
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7860/health || exit 1
+# start-period covers torch cold-import (~10-20s on slow disks).
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
 
-# Start using Gunicorn with our custom config
 CMD ["gunicorn", "-c", "gunicorn_conf.py", "app.main:app"]

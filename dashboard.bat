@@ -23,7 +23,7 @@ if "%choice%"=="5" goto exit
 :backend
 cls
 echo starting Backend with uv
-uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir app
 pause
 goto menu
 

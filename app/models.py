@@ -140,6 +140,21 @@ class Car (Base) :
     year = Column (
         Integer,
         nullable=False)
+    mileage = Column (
+        Integer,
+        nullable=True)
+    fuel_type = Column (
+        String,
+        nullable=True)
+    transmission = Column (
+        String,
+        nullable=True)
+    body_type = Column (
+        String,
+        nullable=True)
+    engine_capacity = Column (
+        Integer,
+        nullable=True)
     price_consumer = Column (
         Float,
         nullable=False)

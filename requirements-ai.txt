@@ -1,19 +1,5 @@
-# AI/ML Dependencies for Car Dealers Pro
-# These are only installed when ENABLE_AI=true is set
-
-# LLM Integration
-litellm==1.81.10
-openai==2.20.0
-huggingface_hub==1.12.0
-
-# Data Processing
-pandas==2.3.3
-numpy==1.26.4
-scipy==1.15.3
-
-# Tokenization
-tiktoken==0.12.0
-tokenizers==0.22.2
-
-# Additional AI Utilities
-joblib==1.5.3
+litellm==1.50.0
+openai==1.51.0
+huggingface-hub==0.25.0
+tiktoken==0.8.0
+tokenizers==0.20.0

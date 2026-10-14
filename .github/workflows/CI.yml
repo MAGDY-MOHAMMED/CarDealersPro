@@ -18,7 +18,7 @@ jobs:
           POSTGRES_DB: cardealerspro_test
         ports:
           - 5432:5432
-        options: >-
+        options: >- 
           --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
@@ -37,17 +37,20 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v1
+        uses: astral-sh/setup-uv@v3 # installs the latest version of uv
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: |
           uv venv
-          uv pip install -r requirements.txt
+          # install the dependencies
+          uv pip install -r requirements.txt -r requirements-ml.txt
 
       - name: Run tests
         run: uv run pytest -v
 
-      - name: Set up Docker Buildx
+      - name: Set up Docker Buildx # supports caching,
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
@@ -57,32 +60,35 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6 #hey
-        with:
-          context: . #hey mag
+        uses: docker/build-push-action@v6 # means using the latest version
+        with: # why with ? because it's the latest version and it's more secure
+          context: . #means current directory
           file: ./Dockerfile
           push: true
-          tags: |
+          build-args: |
+            ENABLE_AI=true
+          tags: | # means multiple tags, first is latest, second is the commit hash for rollbacking
             ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:latest
             ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha # means cache from github actions
+          cache-to: type=gha,mode=max # means cache to github actions
 
       - name: Scan image for vulnerabilities (Docker Native)
         run: |
           docker run --rm \
-            -v $HOME/.docker/config.json:/root/.docker/config.json \
-            ghcr.io/aquasecurity/trivy:0.53.0 image \
-            --exit-code 1 \
-            --ignore-unfixed \
-            --severity CRITICAL,HIGH \
-            ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
+            -v $HOME/.docker/config.json:/root/.docker/config.json \ #volume monunt between host and container so we can use trivy to check the vulnerabilities of the image
+            ghcr.io/aquasecurity/trivy:0.53.0 image \ #image to scan
+            --exit-code 1 \ #exit with code 1 if vulnerabilities found
+            --ignore-unfixed \ #ignore unfixed vulnerabilities, we will fix them later
+            --severity CRITICAL,HIGH \ #severity to check
+            ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }} #image to scan
 
   deploy-to-hf:
     needs: test-and-build
     runs-on: ubuntu-latest
     environment: production
     steps:
+      #first , checkout the repository , the code we will deploy
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -92,17 +98,18 @@ jobs:
           HF_USERNAME: magdy2467
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         run: |
-          git clone --depth 1 "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro" hf-space          
+          git clone --depth 1 "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/CarDealersPro" hf-space      #--depth 1 means clone only the latest commit
           cp Dockerfile.hf hf-space/Dockerfile
-          sed -i "s|DOCKER_HUB_USERNAME/cardealerspro:latest|${DOCKER_HUB_USERNAME}/cardealerspro:${{ github.sha }}|g" hf-space/Dockerfile
-          
+          sed -i "s|DOCKER_HUB_USERNAME/cardealerspro:latest|${DOCKER_HUB_USERNAME}/cardealerspro:${{ github.sha }}|g" hf-space/Dockerfile #sed here to replace the image tag (latest) with the commit hash (sha)
+          #cd to the space directory
           cd hf-space 
+          #configure git for committing , why ? because we need to commit the Dockerfile
           git config user.name "GitHub CI"
+          #set the email
           git config user.email "ci@cardealerspro.com"
-          
           git add Dockerfile
-          
-          if git diff --staged --quiet; then
+          #check if there are changes
+          if git diff --staged --quiet; then #--staged means check the staged changes
             echo "No changes to deploy"
           else
             git commit -m "Deploy immutable image ${{ github.sha }} [skip ci]"

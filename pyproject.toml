@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cardealerspro"
+version = "0.1.0"
+description = "Car Dealers Platform - FastAPI + PostgreSQL + AI"
+requires-python = ">=3.11"
+readme = "README.md"
+
+# الاعتماديات الأساسية (بدون pinned versions للأفضلية في التطوير)
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "matplotlib",
+    "torchvision",
+    "joblib",
+    "asyncpg",
+    "alembic",
+    "pydantic",
+    "pydantic-settings",
+    "python-jose",
+    "passlib",
+    "bcrypt",
+    "python-multipart",
+    "aiofiles",
+    "pillow",
+    "python-magic-bin",
+    "torch",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scikit-learn",
+]
+
+# Optional dependencies (AI extras)
+[project.optional-dependencies]
+ai = [
+    "litellm",
+    "openai",
+    "huggingface_hub",
+    "tiktoken",
+    "tokenizers",
+]
+
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+    "flake8",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*", "core*", "import_data*", "scripts*", "tools*",]
+exclude = ["tests*", "alembic*", "data*", "storage*", "ai_models*"]
+
+# إعدادات pytest (نقلها من pytest.ini)
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
