@@ -12,7 +12,7 @@ psycopg2-binary==2.9.9  # للـ alembic sync
 greenlet==3.1.1
 pyarrow==18.1.0
 # Validation & Settings
-pydantic==2.9.2
+pydantic>=2.10.0
 pydantic-settings==2.6.0
 pydantic-partial==0.10.2
 email-validator==2.2.0
