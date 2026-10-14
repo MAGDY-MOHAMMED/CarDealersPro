@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-# Cancel in-progress runs for the same ref — saves CI minutes AND disk.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -42,30 +41,18 @@ jobs:
 
     steps:
       # =====================================================================
-      # STEP 1 — FREE DISK FIRST (before anything else touches the disk).
-      #
-      # GitHub's ubuntu-latest runner ships with ~14 GB of pre-installed
-      # tooling we never use. This action strips it aggressively:
-      #   android:        ~9 GB   (Android SDK, NDK, emulators)
-      #   dotnet:         ~1 GB   (.NET SDKs)
-      #   haskell:        ~1 GB   (GHC, cabal)
-      #   large-packages: ~5 GB   (unused apt packages)
-      #   docker-images:  ~10 GB  (pre-pulled base images)
-      #   tool-cache:     ~5 GB   (Node/Python versions we don't need; uv
-      #                            uses actions/cache, NOT the tool cache)
-      #
-      # Net result: ~30 GB free before we start — plenty for torch + build.
+      # STEP 1 — FREE DISK FIRST
       # =====================================================================
       - name: Free Disk Space (aggressive)
         uses: jlumbroso/free-disk-space@main
         with:
-          tool-cache: true          # safe: setup-uv uses actions/cache, not tool-cache
+          tool-cache: true
           android: true
           dotnet: true
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: false       # keep swap — helps during docker build
+          swap-storage: false
 
       - name: Show disk space (before)
         run: df -h /
@@ -90,9 +77,7 @@ jobs:
         run: uv run pytest -v
 
       # =====================================================================
-      # STEP 2 — FREE THE TEST VENV BEFORE DOCKER BUILD.
-      # The venv is ~3-4 GB after installing torch. Tests are done, so
-      # deleting it now gives the Docker build more headroom.
+      # STEP 2 — FREE THE TEST VENV BEFORE DOCKER BUILD
       # =====================================================================
       - name: Remove test venv
         if: always()
@@ -124,52 +109,30 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:latest
             ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
-          # mode=min caches ONLY the final image layers (~1× image size)
-          # instead of all intermediate stages (~2× image size). Saves
-          # roughly half the GHA cache download during build. Trade-off:
-          # repeat builds are slightly slower.
           cache-from: type=gha
           cache-to: type=gha,mode=min
-          # Attestation + SBOM manifests add overhead and aren't needed here.
           provenance: false
           sbom: false
 
       # =====================================================================
-      # STEP 3 — VULNERABILITY SCANNING via the official Trivy action.
-      # (Replaces the old `docker run ...` block that was broken by a
-      # stray comment after a backslash.)
+      # STEP 3 — VULNERABILITY SCANNING (Docker Native)
+      #
+      # Runs Trivy directly as a container. This avoids depending on the
+      # trivy-action GitHub Action, which occasionally drops old tags.
       #
       # Policy:
-      #   - BLOCK on CRITICAL, unfixed OS/library CVEs.
-      #   - Report HIGH separately via SARIF (non-blocking) — base images
-      #     routinely carry HIGH CVEs whose patches are pending upstream.
+      #   - BLOCK on CRITICAL AND HIGH, unfixed OS/library CVEs.
+      #   - ignore-unfixed: skip CVEs with no available patch.
       # =====================================================================
-      - name: Trivy — CRITICAL scan (blocking)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL'
-
-      - name: Trivy — SARIF report (non-blocking)
-        if: always()
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
-
-      - name: Upload Trivy SARIF to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-results.sarif'
+      - name: Scan image for vulnerabilities (Docker Native)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            ghcr.io/aquasecurity/trivy:0.53.0 image \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --severity CRITICAL,HIGH \
+            ${{ secrets.DOCKER_HUB_USERNAME }}/cardealerspro:${{ github.sha }}
 
   deploy-to-hf:
     needs: test-and-build
@@ -185,8 +148,8 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_USERNAME: ${{ secrets.HF_USERNAME }}
-          HF_SPACE_NAME: ${{ secrets.magdy2467 }}
-          DOCKER_HUB_USERNAME: ${{ secrets.CarDealersPro }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         run: |
           git clone --depth 1 \
             "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" \
