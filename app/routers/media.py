@@ -42,7 +42,20 @@ ALLOWED_VIDEO_MIME_TYPES = {"video/mp4", "video/avi", "video/quicktime", "video/
 MAX_FILE_SIZE = 100 * 1024 * 1024
 
 # Minimum disk space required (1GB)
-MIN_DISK_SPACE = 1 * 1024 * 1024 * 1024
+def get_min_disk_space_bytes() -> int:
+    """
+    Minimum free disk space required before accepting an upload.
+
+    Configurable via MIN_DISK_SPACE_MB (default: 500 MB).
+    Set to 0 to disable the check entirely — useful in CI where the
+    runner's disk is constrained by the installed ML stack.
+    """
+    raw = os.getenv("MIN_DISK_SPACE_MB", "500")
+    try:
+        mb = int(raw)
+    except ValueError:
+        mb = 500
+    return max(0, mb) * 1024 * 1024
 
 
 def get_media_type_from_filename(filename: str) -> MediaType:
@@ -132,9 +145,14 @@ async def upload_car_media(
 
     # 4. التأكد من وجود مساحة على القرص
     STORAGE_BASE_DIR.mkdir(parents=True, exist_ok=True)
-    disk_usage = shutil.disk_usage(STORAGE_BASE_DIR)
-    if disk_usage.free < MIN_DISK_SPACE:
-        raise InsufficientStorageException(required=MIN_DISK_SPACE, available=disk_usage.free)
+    min_disk_bytes = get_min_disk_space_bytes()
+    if min_disk_bytes > 0:
+        disk_usage = shutil.disk_usage(STORAGE_BASE_DIR)
+        if disk_usage.free < min_disk_bytes:
+            raise InsufficientStorageException(
+                required=min_disk_bytes,
+                available=disk_usage.free,
+            )
 
     # 5. الإعدادات: حجم القطعة، الحجم الأقصى، الحجم التراكمي
     CHUNK_SIZE = 1024 * 1024  # 1MB

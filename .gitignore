@@ -127,3 +127,5 @@ elk/data/
 legacy/
 #any repomix.xml file
 repomix.xml
+
+*.egg-info/

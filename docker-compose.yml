@@ -40,8 +40,11 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deployment/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deployment/proxy_params.conf:/etc/nginx/proxy_params.conf:ro
       - storage-uploads:/app/storage/uploads:ro
+      # في nginx:
+      - storage-uploads:/var/www/storage:ro
     depends_on:
       - api
     networks:

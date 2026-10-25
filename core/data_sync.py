@@ -38,14 +38,24 @@ async def sync_parquet_to_db():
     async with AsyncSession(engine) as session: #why async ? because we are using async engine
         for file in parquet_path.glob("*.parquet"): # means iterate over all parquet files in data/optimized/ folder
             df = pq.read_table(file).to_pandas() #read parquet file and convert to pandas dataframe
-            required_cols = {'car_id', 'feature_vector', 'predicted_price', 'damage_score'} #required columns, why {} ? because it's faster to check if all required columns are present
+            required_cols = {'car_id', 'features', 'price_prediction', 'damage_score'} #required columns (ML parquet schema), why {} ? because it's faster to check if all required columns are present
 
 
             if not required_cols.issubset(set(df.columns)): #check if all required columns are present
                 logger.warning(f"Missing required columns in {file.name}. Skipping.", exc_info=True) # exc_info=True means print exception info
                 continue
 
-            records = df[['car_id', 'feature_vector', 'predicted_price', 'damage_score']].to_dict(orient='records') #.to_dict(orient='records') means convert dataframe to list of dictionaries
+            # Map the ML parquet schema (features/price_prediction) to the DB columns
+            # (feature_vector/predicted_price) that the car_features table expects.
+            records = [
+                {
+                    "car_id": r["car_id"],
+                    "feature_vector": r["features"],
+                    "predicted_price": r["price_prediction"],
+                    "damage_score": r["damage_score"],
+                }
+                for r in df[["car_id", "features", "price_prediction", "damage_score"]].to_dict(orient="records")
+            ]
             # time to insert or update car features
             stmt = pg_insert(CarFeatures).values(records)  #insert or update car features
             stmt = stmt.on_conflict_do_update( #update if car_id already exists

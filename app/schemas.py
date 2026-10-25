@@ -11,7 +11,17 @@ class CarsBase(BaseModel):
     year : int
     price_consumer : float
     price_dealer : Optional[float] = None
+    engine_power: float | None = Field(None, description="Engine power in horsepower")
+    previous_owners: int | None = Field(None, ge=0, description="Number of previous owners")
+    accident_history: bool | None = Field(None, description="Whether the car has accident history")
+    damage_history: str | None = Field(None, description="History of damages")
+    repair_records: str | None = Field(None, description="Repair records")
     color : str | None = None
+    mileage : int | None = None
+    fuel_type : str | None = None
+    transmission : str | None = None
+    body_type : str | None = None
+    engine_capacity : int | None = None
 
 # i will use RS256 algorithm and .pem file to store the public key and private key and to be ordered
 
@@ -250,11 +260,38 @@ class PaymentSummaryResponse(BaseModel):
 
 
 class PricePredictRequest(BaseModel):
-    brand: str
-    model: str
-    year: int
-    mileage: Optional[float] = None
-    condition: str = "used"
+    """
+    Pre-encoded car features for price prediction.
+
+    IMPORTANT: the client must send the *encoded* (integer) values that the
+    training pipeline produced. The encoders used are the ones saved by
+    `python -m tools.ingest features` in ai_models/ai_artifacts/price_encoders.pt.
+
+    Column order / names MUST match FEATURE_COLUMNS in
+    app/services/ml/config.py exactly. Any mismatch silently produces garbage.
+    """
+    year: int = Field(..., ge=1900, le=2100, description="Manufacturing year")
+    mileage: float = Field(..., ge=0, description="Odometer in km")
+    brand_enc: int = Field(..., ge=0, description="Encoded brand id")
+    model_enc: int = Field(..., ge=0, description="Encoded model id")
+    fuel_type_enc: int = Field(..., ge=0, description="Encoded fuel type id")
+    transmission_enc: int = Field(..., ge=0, description="Encoded transmission id")
+    body_type_enc: int = Field(..., ge=0, description="Encoded body type id")
+
+class RawCarFeatures(BaseModel):
+    """
+    Raw, human-readable car features.
+
+    Use this with POST /ai/encode to translate to the encoded form
+    expected by POST /ai/price-predict.
+    """
+    brand: str = Field(..., min_length=1, description="e.g. 'Toyota'")
+    model: str = Field(..., min_length=1, description="e.g. 'Corolla'")
+    year: int = Field(..., ge=1900, le=2100)
+    mileage: float = Field(..., ge=0, description="Odometer in km")
+    fuel_type: str = Field(..., min_length=1, description="e.g. 'petrol'")
+    transmission: str = Field(..., min_length=1, description="e.g. 'automatic'")
+    body_type: str = Field(..., min_length=1, description="e.g. 'sedan'")
 
 class PricePredictResponse(BaseModel):
     predicted_price: float
