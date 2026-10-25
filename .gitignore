@@ -129,3 +129,11 @@ legacy/
 repomix.xml
 
 *.egg-info/
+# Sensitive keys & certificates
+*private*.txt
+*public*.txt
+*.pem
+*.key
+
+# Package manager lock files (optional for uv)
+uv.lock
